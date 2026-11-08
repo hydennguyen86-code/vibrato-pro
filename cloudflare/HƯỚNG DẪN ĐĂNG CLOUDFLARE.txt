@@ -1,0 +1,48 @@
+VIBRATO PRO — ĐĂNG LÊN CLOUDFLARE (khoảng 15 phút, làm 1 lần)
+
+Anh đã có tài khoản Cloudflare (tài khoản đang giữ tên miền hydennguyen.com).
+Thư mục cần kéo thả: "vibrato" (cùng chỗ với file hướng dẫn này). ĐỪNG kéo file .zip, hãy giải nén rồi kéo THƯ MỤC.
+
+BƯỚC 1 — Lấy Claude API key (nếu chưa có)
+  1. Vào console.anthropic.com → đăng nhập → Settings → API Keys → Create Key. Copy key (dạng sk-ant-...).
+  2. Vào Billing nạp ít tiền (ví dụ 5 USD) và đặt giới hạn chi tiêu hằng tháng (Limits) cho yên tâm.
+  Giữ key bí mật, không gửi qua chat.
+
+BƯỚC 2 — Tạo project và đăng app
+  1. Vào dash.cloudflare.com → menu trái "Workers & Pages" → nút "Create" (Tạo).
+  2. Chọn tab "Pages" → "Upload assets" (Tải tài sản lên / Direct upload).
+  3. Project name: vibrato → Create project.
+  4. Kéo thư mục "vibrato" vào ô tải lên → chờ 7 file tải xong → "Deploy site".
+  Cloudflare cho link dạng https://vibrato-xxx.pages.dev — mở thử: app chạy, nhưng HLV AI chưa có (bước 3).
+
+BƯỚC 3 — Gắn API key và mã khoá (biến bí mật)
+  1. Trong project vibrato → Settings → "Variables and Secrets" → Add.
+  2. Thêm biến thứ nhất:  Type = Secret,  Name = ANTHROPIC_API_KEY,  Value = key ở bước 1.
+  3. Thêm biến thứ hai:   Type = Secret,  Name = COACH_PASSCODE,     Value = một mã anh tự đặt (ví dụ 6–10 ký tự).
+     Mã này để người khác có link cũng không dùng được HLV AI bằng tiền của anh.
+  4. Save. Biến chỉ có hiệu lực từ lần đăng KẾ TIẾP → vào tab Deployments → "Create deployment"
+     → kéo lại thư mục "vibrato" → Deploy. (Tính 1 lần build trong 500 lần/tháng.)
+
+BƯỚC 4 — Gắn tên miền riêng vibrato.hydennguyen.com (tuỳ chọn, nên làm)
+  1. Project vibrato → tab "Custom domains" → "Set up a custom domain".
+  2. Gõ: vibrato.hydennguyen.com → Continue → "Activate domain".
+     Cloudflare tự thêm bản ghi DNS. KHÔNG đụng tới 2 bản ghi của Substack (www và hydennguyen.com).
+  3. Chờ vài phút đến khi trạng thái "Active".
+
+BƯỚC 5 — Dùng trên iPhone
+  1. Safari mở https://vibrato.hydennguyen.com (hoặc link .pages.dev).
+  2. Chia sẻ → "Thêm vào Màn hình chính".
+  3. Mở app → Cài đặt → HLV AI & máy chủ → nhập "Mã HLV AI" (đúng COACH_PASSCODE ở bước 3).
+  4. Lần đầu bấm đo/bật camera: cho phép micro và camera.
+
+KHI CÓ BẢN APP MỚI
+  Project vibrato → Deployments → Create deployment → kéo thư mục mới → Deploy. Biến bí mật giữ nguyên.
+
+ĐỔI MODEL CLAUDE (tuỳ chọn)
+  Mặc định dùng claude-haiku-5-5 (rẻ, nhanh). Muốn nhận xét kỹ hơn: thêm biến thường
+  CLAUDE_MODEL = claude-sonnet-5-5 rồi đăng lại.
+
+LƯU Ý
+  - Dữ liệu tập lưu trên iPhone, không lên Cloudflare. Đổi máy/xoá dữ liệu Safari là mất tiến độ.
+  - Camera nhìn tay vẫn là thử nghiệm, chỉ tham khảo.
+  - Máy chủ trên Mac (gói "Violin Vibrato") vẫn dùng được song song nếu anh muốn HLV AI chạy Ollama miễn phí.

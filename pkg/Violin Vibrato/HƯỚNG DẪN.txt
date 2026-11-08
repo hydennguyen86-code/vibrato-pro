@@ -1,0 +1,29 @@
+VIBRATO PRO — CHẠY TRÊN MAC CHO IPHONE
+
+LẦN ĐẦU (khoảng 10 phút)
+1. Cài Tailscale trên Mac (App Store hoặc tailscale.com/download) và trên iPhone (App Store).
+   Đăng nhập CÙNG một tài khoản trên cả hai máy.
+2. Mở trang quản trị Tailscale (login.tailscale.com/admin/dns): bật "MagicDNS" và "HTTPS Certificates".
+   (Lần đầu chạy, Terminal cũng sẽ in đường link để bật nếu bạn chưa bật.)
+3. HLV AI trên Mac cần Ollama có một model. Nếu chưa có, mở Terminal và gõ:
+      ollama pull qwen2.5:7b
+4. Nhấp đúp "Khởi động Vibrato.command".
+   Nếu macOS báo không mở được: chuột phải vào file → Mở → Mở.
+   Lần đầu, máy chủ tự tải model nhìn tay từ Google (≈ 8 MB).
+
+MỖI LẦN TẬP
+- Nhấp đúp "Khởi động Vibrato.command" trên Mac (cửa sổ Terminal phải mở suốt buổi tập).
+- Trên iPhone: bật Tailscale, mở link Terminal in ra (dạng https://ten-may.ten-mang.ts.net).
+  Link cố định — thêm vào Màn hình chính một lần là xong.
+- Tập xong: đóng cửa sổ Terminal.
+
+ĐỔI HLV AI SANG CLAUDE
+- Mở config.json, dán API key vào "anthropic_api_key", lưu, khởi động lại.
+- Trong app: Cài đặt → HLV AI → chọn "Claude API" (hoặc để Tự động).
+
+THƯ MỤC
+- app/index.html          : app (mở trực tiếp trên Mac cũng chạy, nhưng không có camera/HLV)
+- app/vendor/mediapipe/   : thư viện nhìn tay MediaPipe (Google, giấy phép Apache 2.0)
+- server.py               : máy chủ (chỉ dùng Python có sẵn)
+- config.json             : chọn AI, API key
+- Dữ liệu tập lưu trong trình duyệt của iPhone (không lên mạng).

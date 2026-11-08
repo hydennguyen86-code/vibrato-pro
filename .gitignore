@@ -1,0 +1,11 @@
+# sinh ra khi build — tạo lại bằng build.py / build_cloudflare.py
+dist/
+cloudflare/vibrato/
+cloudflare/*.zip
+pkg/*.zip
+pkg/Violin Vibrato/app/
+node_modules/
+__pycache__/
+.DS_Store
+# model camera chỉ để thử local (tải lại từ Google khi cần)
+vendor/mediapipe/hand_landmarker.task

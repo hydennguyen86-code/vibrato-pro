@@ -1,0 +1,8 @@
+{
+  "_huong_dan": "provider: auto (Ollama trước, không có thì Claude) | ollama | claude. Muốn dùng Claude: dán API key vào anthropic_api_key rồi khởi động lại.",
+  "provider": "auto",
+  "ollama_url": "http://127.0.0.1:11434",
+  "ollama_model": "auto",
+  "anthropic_api_key": "",
+  "claude_model": "claude-haiku-5-5"
+}
