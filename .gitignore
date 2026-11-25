@@ -9,3 +9,4 @@ __pycache__/
 .DS_Store
 # model camera chỉ để thử local (tải lại từ Google khi cần)
 vendor/mediapipe/hand_landmarker.task
+scratchpad/

@@ -1,0 +1,2776 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legato Studio — 50 Level Đổi Vĩ & Vibrato Mượt</title>
+  <style>
+    /* =========================================================
+       DESIGN TOKENS & ACOUSTIC STUDIO DARK THEME
+       ========================================================= */
+    :root {
+      --bg-main: #0f1115;
+      --bg-card: #181b22;
+      --bg-elevated: #20242e;
+      --bg-hover: #252a36;
+      --border: #282d3a;
+      --border-light: #343b4d;
+
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+
+      --gold: #e5a93c;
+      --gold-soft: rgba(229, 169, 60, 0.14);
+      --gold-glow: rgba(229, 169, 60, 0.35);
+
+      --green: #2ecc71;
+      --green-soft: rgba(46, 204, 113, 0.14);
+
+      --cyan: #38bdf8;
+      --cyan-soft: rgba(56, 189, 248, 0.14);
+
+      --red: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.15);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2f3545;
+      border-radius: 99px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #434c63;
+    }
+
+    /* =========================================================
+       LAYOUT SHELL
+       ========================================================= */
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* Sidebar (50 Levels) */
+    .sidebar {
+      width: 340px;
+      min-width: 340px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .sidebar-header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #e5a93c 0%, #b7791f 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px var(--gold-glow);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+
+    .brand-sub {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+    }
+
+    .close-drawer-btn {
+      display: none;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    /* Progress Bar in Sidebar */
+    .progress-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      margin-bottom: 6px;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: #12151b;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--green));
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* Phase Filter Pills */
+    .phase-filters {
+      display: flex;
+      gap: 6px;
+      padding: 12px 14px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+    .phase-filters::-webkit-scrollbar {
+      display: none;
+    }
+
+    .phase-pill {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 6px 11px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .phase-pill:hover {
+      border-color: var(--border-light);
+      color: var(--text-primary);
+    }
+    .phase-pill.active {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* Level List */
+    .level-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px 24px;
+    }
+
+    .phase-group-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gold);
+      margin: 14px 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .phase-group-header:first-child {
+      margin-top: 4px;
+    }
+
+    .level-item {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 10px 11px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.16s ease;
+      color: var(--text-primary);
+    }
+    .level-item:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border);
+    }
+    .level-item.active {
+      background: linear-gradient(90deg, rgba(229, 169, 60, 0.15), rgba(229, 169, 60, 0.03));
+      border-color: var(--gold);
+    }
+
+    .level-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+    .level-item.active .level-num {
+      background: var(--gold);
+      color: #111;
+      border-color: var(--gold);
+    }
+    .level-item.completed .level-num {
+      background: var(--green-soft);
+      color: var(--green);
+      border-color: rgba(46, 204, 113, 0.4);
+    }
+    .level-item.active.completed .level-num {
+      background: var(--green);
+      color: #0b140f;
+    }
+
+    .level-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .level-title {
+      font-size: 0.84rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .level-meta {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+    .tag-vib {
+      color: var(--cyan);
+      background: var(--cyan-soft);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.66rem;
+      font-weight: 600;
+    }
+    .level-score-badge {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    /* Mobile Drawer Backdrop */
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 35;
+    }
+    .drawer-backdrop.show {
+      display: block;
+    }
+
+    /* =========================================================
+       MAIN STUDIO WORKSPACE
+       ========================================================= */
+    .main-area {
+      flex: 1;
+      min-width: 0;
+      padding: 20px 24px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Top Header Bar */
+    .studio-topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .active-level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gold-soft);
+      color: var(--gold);
+      border: 1px solid rgba(229, 169, 60, 0.35);
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .active-level-title {
+      font-size: 1.38rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+
+    .level-specs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .spec-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 0.77rem;
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .spec-chip strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    .spec-chip.vib-on {
+      border-color: rgba(56, 189, 248, 0.4);
+      background: var(--cyan-soft);
+      color: var(--cyan);
+    }
+    .spec-chip.vib-on strong {
+      color: #e0f2fe;
+    }
+
+    .level-nav-btns {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 15px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      user-select: none;
+    }
+    .btn:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--border-light);
+    }
+    .btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #e5a93c, #cf8f24);
+      color: #111318;
+      border-color: #e5a93c;
+      box-shadow: 0 4px 16px rgba(229, 169, 60, 0.25);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #f0b84d, #dc9c2e);
+      border-color: #f0b84d;
+    }
+
+    .btn-mic-active {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      border-color: #ef4444;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.4);
+    }
+    .btn-mic-active:hover:not(:disabled) {
+      background: linear-gradient(135deg, #f87171, #ef4444);
+    }
+
+    .btn-green {
+      background: var(--green-soft);
+      color: var(--green);
+      border-color: rgba(46, 204, 113, 0.45);
+    }
+    .btn-green:hover:not(:disabled) {
+      background: rgba(46, 204, 113, 0.24);
+    }
+
+    .btn-cyan {
+      background: var(--cyan-soft);
+      color: var(--cyan);
+      border-color: rgba(56, 189, 248, 0.45);
+    }
+    .btn-cyan:hover:not(:disabled) {
+      background: rgba(56, 189, 248, 0.24);
+    }
+
+    .btn-sm {
+      padding: 7px 11px;
+      font-size: 0.79rem;
+    }
+
+    /* Status / Alert Banner (replaces alert()) */
+    .status-banner {
+      display: none;
+      padding: 11px 15px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 500;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      animation: fadeSlide 0.22s ease;
+    }
+    .status-banner.show {
+      display: flex;
+    }
+    .status-banner.error {
+      background: var(--red-soft);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fecaca;
+    }
+    .status-banner.success {
+      background: var(--green-soft);
+      border: 1px solid rgba(46, 204, 113, 0.45);
+      color: #bbf7d0;
+    }
+    .status-banner.info {
+      background: var(--gold-soft);
+      border: 1px solid rgba(229, 169, 60, 0.45);
+      color: #fde68a;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =========================================================
+       STUDIO CARDS & BOW GUIDE + CANVAS
+       ========================================================= */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-card);
+    }
+
+    /* Bow Guide Bar */
+    .bow-guide-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bow-dir-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .bow-symbol {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--gold-soft);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+    }
+
+    .bow-warning-pill {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 99px;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      transition: all 0.15s ease;
+    }
+    .bow-warning-pill.warn {
+      background: rgba(229, 169, 60, 0.22);
+      color: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 0 14px var(--gold-glow);
+    }
+
+    .beat-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .beat-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #282d3a;
+      border: 1px solid #3c4356;
+      transition: transform 0.1s ease, background 0.1s ease;
+    }
+    .beat-dot.active {
+      background: var(--gold);
+      border-color: #fde68a;
+      transform: scale(1.25);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+    .beat-dot.beat-one.active {
+      background: var(--green);
+      border-color: #86efac;
+      box-shadow: 0 0 12px rgba(46, 204, 113, 0.6);
+    }
+
+    .bow-track-wrap {
+      position: relative;
+      height: 44px;
+      background: #111319;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    .bow-zone-labels {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .bow-zone-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(156, 163, 175, 0.45);
+      border-right: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+    .bow-zone-seg:last-child {
+      border-right: none;
+    }
+
+    .bow-active-zone {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: rgba(229, 169, 60, 0.12);
+      border-left: 2px solid rgba(229, 169, 60, 0.55);
+      border-right: 2px solid rgba(229, 169, 60, 0.55);
+      z-index: 2;
+      transition: left 0.25s ease, width 0.25s ease;
+    }
+
+    .bow-hair-line {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 99px;
+      z-index: 2;
+    }
+
+    .bow-cursor {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 18px;
+      height: 30px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #f6c762, #d48e1f);
+      border: 2px solid #fff7e6;
+      box-shadow: 0 0 16px var(--gold-glow);
+      z-index: 4;
+      left: 50%;
+      will-change: left;
+    }
+
+    /* Dual-Track Visualizer Canvas */
+    .canvas-container {
+      margin-top: 14px;
+      position: relative;
+      width: 100%;
+      height: 300px;
+      background: #0c0e12;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    canvas#visualizerCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .canvas-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* =========================================================
+       CONTROLS BAR (MIC, DEMO, METRONOME, DRONE, GATE)
+       ========================================================= */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 14px;
+    }
+
+    .control-group-title {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      font-size: 0.79rem;
+      color: var(--text-secondary);
+    }
+
+    .slider-row label {
+      min-width: 135px;
+      white-space: nowrap;
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--gold);
+      cursor: pointer;
+      height: 5px;
+    }
+
+    .slider-val {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-primary);
+      min-width: 58px;
+      text-align: right;
+    }
+
+    .demo-mode-select {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* =========================================================
+       LIVE METRICS & COACHING PANEL
+       ========================================================= */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 13px 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .metric-label {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-size: 1.48rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .metric-sub {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    /* Mini Cents Tuner Bar */
+    .tuner-bar {
+      position: relative;
+      height: 7px;
+      background: #111319;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      margin-top: 2px;
+    }
+    .tuner-center {
+      position: absolute;
+      left: 50%;
+      top: -2px;
+      bottom: -2px;
+      width: 2px;
+      background: var(--green);
+      transform: translateX(-50%);
+    }
+    .tuner-needle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--cyan);
+      transform: translate(-50%, -50%);
+      transition: left 0.08s linear;
+    }
+
+    /* Coaching Tip & Completion Footer */
+    .coaching-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      background: linear-gradient(135deg, rgba(229, 169, 60, 0.08), rgba(24, 27, 34, 0.95));
+      border: 1px solid rgba(229, 169, 60, 0.28);
+    }
+
+    .coaching-text {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .coaching-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+
+    .coaching-tip {
+      font-size: 0.9rem;
+      color: #e5e7eb;
+      line-height: 1.5;
+    }
+
+    .coaching-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* =========================================================
+       RESPONSIVE BREAKPOINTS
+       ========================================================= */
+    @media (max-width: 1080px) {
+      .controls-grid {
+        grid-template-columns: 1fr;
+      }
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        width: 310px;
+        min-width: 310px;
+        box-shadow: 12px 0 36px rgba(0, 0, 0, 0.6);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .close-drawer-btn {
+        display: inline-flex;
+      }
+      .mobile-menu-btn {
+        display: inline-flex;
+      }
+      .main-area {
+        padding: 14px 14px 28px;
+      }
+      .canvas-container {
+        height: 260px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .metric-value {
+        font-size: 1.22rem;
+      }
+      .active-level-title {
+        font-size: 1.15rem;
+      }
+      .slider-row {
+        flex-wrap: wrap;
+      }
+      .slider-row label {
+        min-width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Backdrop for mobile drawer -->
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+
+    <!-- =======================================================
+         LEFT SIDEBAR: 50 PROGRESSIVE LEVELS
+         ======================================================= -->
+    <aside id="sidebar" class="sidebar" aria-label="Danh sách 50 Level">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-left">
+            <div class="brand-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18V5l12-2v13"></path>
+                <circle cx="6" cy="18" r="3"></circle>
+                <circle cx="18" cy="16" r="3"></circle>
+              </svg>
+            </div>
+            <div>
+              <div class="brand-title">Legato Studio</div>
+              <div class="brand-sub">50 Level Đổi Vĩ &amp; Vibrato Mượt</div>
+            </div>
+          </div>
+          <button id="closeDrawerBtn" class="close-drawer-btn" aria-label="Đóng danh sách">✕</button>
+        </div>
+
+        <div class="progress-box">
+          <div class="progress-top">
+            <span style="color: var(--text-secondary); font-weight: 600;">Tiến độ luyện tập</span>
+            <span id="progressText" style="color: var(--gold); font-weight: 700; font-family: var(--font-mono);">0 / 50 Level</span>
+          </div>
+          <div class="progress-track">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase Filter Pills -->
+      <div id="phaseFilters" class="phase-filters">
+        <button class="phase-pill active" data-phase="0">Tất cả (50)</button>
+        <button class="phase-pill" data-phase="1">GĐ 1: Nền tảng</button>
+        <button class="phase-pill" data-phase="2">GĐ 2: Đổi nốt</button>
+        <button class="phase-pill" data-phase="3">GĐ 3: Vibrato</button>
+        <button class="phase-pill" data-phase="4">GĐ 4: Mọi vùng vĩ</button>
+        <button class="phase-pill" data-phase="5">GĐ 5: Cantabile</button>
+      </div>
+
+      <!-- Level List Container -->
+      <div id="levelList" class="level-list"></div>
+    </aside>
+
+    <!-- =======================================================
+         MAIN STUDIO WORKSPACE
+         ======================================================= -->
+    <main class="main-area">
+      <!-- Top Header -->
+      <header class="studio-topbar">
+        <div class="topbar-left">
+          <button id="openDrawerBtn" class="mobile-menu-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+            50 Level
+          </button>
+
+          <div>
+            <div id="activePhaseBadge" class="active-level-badge">Level 1 · Giai đoạn 1</div>
+            <h1 id="activeLevelTitle" class="active-level-title">Đổi vĩ giữa vĩ — Dây D buông</h1>
+            <div id="activeLevelSpecs" class="level-specs"></div>
+          </div>
+        </div>
+
+        <div class="level-nav-btns">
+          <button id="prevLevelBtn" class="btn btn-sm" title="Level trước">← Trước</button>
+          <button id="nextLevelBtn" class="btn btn-sm" title="Level tiếp theo">Tiếp →</button>
+        </div>
+      </header>
+
+      <!-- Non-intrusive Status / Pass / Error Banner -->
+      <div id="statusBanner" class="status-banner" role="status" aria-live="polite">
+        <span id="statusBannerText"></span>
+        <button id="statusBannerClose" class="btn btn-sm" style="padding: 3px 8px;">Đóng</button>
+      </div>
+
+      <!-- Visualizer + Bow Guide Card -->
+      <section class="card">
+        <div class="bow-guide-header">
+          <div class="bow-dir-indicator">
+            <span id="bowSymbol" class="bow-symbol">Π</span>
+            <div>
+              <div id="bowDirLabel">Kéo xuống (Down-bow)</div>
+              <div id="bowZoneSub" style="font-size: 0.74rem; color: var(--text-secondary); font-weight: 500;">Vùng vĩ mục tiêu: Giữa vĩ</div>
+            </div>
+          </div>
+
+          <div id="bowWarningPill" class="bow-warning-pill">Sẵn sàng luyện tập</div>
+
+          <div id="beatDots" class="beat-dots" aria-label="Nhịp phách"></div>
+        </div>
+
+        <!-- Animated Bow Guide Track -->
+        <div class="bow-track-wrap">
+          <div class="bow-zone-labels">
+            <div class="bow-zone-seg">Gốc vĩ (Frog)</div>
+            <div class="bow-zone-seg">Giữa vĩ (Mid)</div>
+            <div class="bow-zone-seg">Ngọn vĩ (Tip)</div>
+          </div>
+          <div id="bowActiveZone" class="bow-active-zone" style="left: 33.3%; width: 33.4%;"></div>
+          <div class="bow-hair-line"></div>
+          <div id="bowCursor" class="bow-cursor" style="left: 33.3%;"></div>
+        </div>
+
+        <!-- High-DPI Dual-Track Canvas -->
+        <div class="canvas-container" id="canvasContainer">
+          <canvas id="visualizerCanvas"></canvas>
+        </div>
+
+        <div class="canvas-legend">
+          <div class="legend-items">
+            <span class="legend-item"><span class="dot" style="background: var(--green);"></span> Âm thanh mượt liên tục</span>
+            <span class="legend-item"><span class="dot" style="background: var(--red);"></span> Hụt tiếng / Đơ Vibrato</span>
+            <span class="legend-item"><span class="dot" style="background: var(--cyan);"></span> Sóng Vibrato (±60 cents)</span>
+            <span class="legend-item"><span class="dot" style="background: var(--gold);"></span> Vạch đổi vĩ</span>
+          </div>
+          <span id="liveDbReadout" style="font-family: var(--font-mono); color: var(--text-muted);">Âm lượng: -- dB</span>
+        </div>
+      </section>
+
+      <!-- Studio Controls Grid -->
+      <section class="controls-grid">
+        <!-- Left: Mic & Simulation Controls -->
+        <div class="card">
+          <div class="control-group-title">
+            <span>Thu âm Micro &amp; Chế độ Mô phỏng</span>
+            <span id="audioSourceTag" style="color: var(--text-muted); font-family: var(--font-mono);">ĐANG DỪNG</span>
+          </div>
+
+          <div class="action-row">
+            <button id="micToggleBtn" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+              <span id="micBtnLabel">Bắt đầu thu âm (Mic)</span>
+            </button>
+
+            <button id="demoToggleBtn" class="btn btn-cyan">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span id="demoBtnLabel">Chạy mô phỏng mẫu</span>
+            </button>
+
+            <select id="demoModeSelect" class="demo-mode-select" aria-label="Chọn kiểu mô phỏng">
+              <option value="smooth">Mẫu mượt (Chuẩn)</option>
+              <option value="dropout">Mẫu bị mất tiếng (Lỗi thường gặp)</option>
+            </select>
+          </div>
+
+          <div class="slider-row">
+            <label for="gateSlider">Ngưỡng nhạy Mic (Gate):</label>
+            <input id="gateSlider" type="range" min="-60" max="-18" step="1" value="-44" />
+            <span id="gateVal" class="slider-val">-44 dB</span>
+          </div>
+        </div>
+
+        <!-- Right: Metronome & Warm Drone -->
+        <div class="card">
+          <div class="control-group-title">
+            <span>Máy đếm nhịp &amp; Âm nền (Drone)</span>
+            <button id="resetBpmBtn" class="btn btn-sm" style="padding: 3px 8px; font-size: 0.72rem;">Đặt lại BPM gốc</button>
+          </div>
+
+          <div class="action-row">
+            <button id="metroToggleBtn" class="btn">
+              <span id="metroBtnLabel">Metronome: Tắt</span>
+            </button>
+            <button id="droneToggleBtn" class="btn">
+              <span id="droneBtnLabel">Drone (D4): Tắt</span>
+            </button>
+          </div>
+
+          <div class="slider-row">
+            <label for="bpmSlider">Tốc độ (BPM):</label>
+            <input id="bpmSlider" type="range" min="40" max="132" step="1" value="60" />
+            <span id="bpmVal" class="slider-val">60 BPM</span>
+          </div>
+
+          <div class="slider-row" style="margin-top: 8px;">
+            <label for="droneVolSlider">Âm lượng Drone:</label>
+            <input id="droneVolSlider" type="range" min="0" max="100" step="1" value="35" />
+            <span id="droneVolVal" class="slider-val">35%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Metrics Cards -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Độ mượt âm thanh</div>
+          <div id="metricSmoothness" class="metric-value">--%</div>
+          <div id="metricSmoothSub" class="metric-sub">Mục tiêu: ≥ 75%</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Đổi vĩ thành công</div>
+          <div id="metricBowChanges" class="metric-value">0 / 0</div>
+          <div id="metricBowSub" class="metric-sub">Hoàn thành chu kỳ 4 lần đổi vĩ</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Trạng thái Vibrato</div>
+          <div id="metricVibrato" class="metric-value" style="font-size: 1.15rem;">Chưa yêu cầu</div>
+          <div id="metricVibSub" class="metric-sub">Tập trung độ liên tục tiếng</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Nốt đang kéo (Tuner)</div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <span id="metricNote" class="metric-value">--</span>
+            <span id="metricCents" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary);">0¢</span>
+          </div>
+          <div class="tuner-bar">
+            <div class="tuner-center"></div>
+            <div id="tunerNeedle" class="tuner-needle"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Coaching Tip & Completion Actions -->
+      <section class="card coaching-card">
+        <div class="coaching-text">
+          <div class="coaching-label">Mẹo kỹ thuật cho Level này</div>
+          <p id="coachingTip" class="coaching-tip"></p>
+        </div>
+
+        <div class="coaching-actions">
+          <button id="resetSessionBtn" class="btn btn-sm">Làm mới lượt tập</button>
+          <button id="completeLevelBtn" class="btn btn-green">✓ Lưu kết quả &amp; Hoàn thành Level</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* =========================================================
+         1. 50 STRUCTURED PROGRESSIVE LEVELS (5 PHASES x 10)
+         ========================================================= */
+      const NOTE_FREQS = {
+        'G3': 196.00, 'A3': 220.00, 'B3': 246.94, 'C4': 261.63,
+        'D4': 293.66, 'E4': 329.63, 'F#4': 369.99, 'G4': 392.00,
+        'A4': 440.00, 'B4': 493.88, 'C#5': 554.37, 'D5': 587.33,
+        'E5': 659.25, 'F#5': 739.99, 'G5': 783.99, 'A5': 880.00
+      };
+
+      const PHASES = {
+        1: 'Giai đoạn 1: Nền tảng đổi vĩ mượt (Dây buông)',
+        2: 'Giai đoạn 2: Đổi nốt & Chuyển dây mượt (Legato)',
+        3: 'Giai đoạn 3: Vibrato liên tục (Continuous Vibrato)',
+        4: 'Giai đoạn 4: Vượt ải Đổi vĩ + Vibrato mọi vùng vĩ',
+        5: 'Giai đoạn 5: Bậc thầy Cantabile (Vibrato + Đổi nốt + Đổi vĩ)'
+      };
+
+      const LEVELS = [
+        // --- PHASE 1: Open Strings & Seamless Bow Changes (1-10) ---
+        { id: 1, phase: 1, title: 'Đổi vĩ giữa vĩ — Dây D buông', bpm: 60, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'D4', droneNote: 'D4', vibratoRequired: false, passThreshold: 75, tip: 'Giữ cổ tay và các ngón tay phải thật mềm như lò xo. Trước khi đổi chiều vĩ, giảm nhẹ tốc độ vĩ một chút rồi để ngón tay dẫn hướng đổi chiều trước cánh tay.' },
+        { id: 2, phase: 1, title: 'Đổi vĩ giữa vĩ — Dây A buông', bpm: 60, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'A4', droneNote: 'A4', vibratoRequired: false, passThreshold: 75, tip: 'Dây A mỏng hơn dây D nên dễ bị rít hoặc hụt hơi. Giữ trọng lượng cánh tay đều đặn xuyên qua vạch đổi vĩ màu vàng.' },
+        { id: 3, phase: 1, title: 'Đổi vĩ giữa vĩ — Dây G buông (Trọng lượng sâu)', bpm: 58, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'G3', droneNote: 'G3', vibratoRequired: false, passThreshold: 75, tip: 'Dây G dày và nặng, cần giữ độ bám lông vĩ (contact point) sát gần ngựa đàn hơn một chút để âm trầm không bị rỗng lúc đổi vĩ.' },
+        { id: 4, phase: 1, title: 'Đổi vĩ giữa vĩ — Dây E buông (Nhẹ & Sáng)', bpm: 62, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'E5', droneNote: 'E5', vibratoRequired: false, passThreshold: 76, tip: 'Trên dây E, tránh đè mạnh ngón trỏ khi đổi vĩ. Hãy dùng tốc độ vĩ mượt và cổ tay thả lỏng để tiếng đàn trong trẻo liên tục.' },
+        { id: 5, phase: 1, title: 'Đổi vĩ tại Gốc vĩ (Frog) — Dây D', bpm: 60, beatsPerBow: 3, bowZone: 'Gốc vĩ', targetNote: 'D4', droneNote: 'D4', vibratoRequired: false, passThreshold: 76, tip: 'Tại gốc vĩ, vĩ rất nặng nên dễ tạo tiếng "khực". Hãy để ngón út tay phải nâng nhẹ sức nặng của vĩ khi đổi từ đẩy lên (V) sang kéo xuống (Π).' },
+        { id: 6, phase: 1, title: 'Đổi vĩ tại Gốc vĩ (Frog) — Dây A', bpm: 62, beatsPerBow: 3, bowZone: 'Gốc vĩ', targetNote: 'A4', droneNote: 'A4', vibratoRequired: false, passThreshold: 77, tip: 'Tập động tác "vẽ số 8 nằm ngang" cực nhỏ bằng các khớp ngón tay phải ở gốc vĩ để xóa hoàn toàn khoảng lặng khi đổi chiều.' },
+        { id: 7, phase: 1, title: 'Đổi vĩ tại Ngọn vĩ (Tip) — Dây D', bpm: 60, beatsPerBow: 3, bowZone: 'Ngọn vĩ', targetNote: 'D4', droneNote: 'D4', vibratoRequired: false, passThreshold: 77, tip: 'Ở ngọn vĩ rất dễ bị mất tiếng vì đầu vĩ nhẹ. Hãy xoay nhẹ cẳng tay phải vào trong (pronation) để ngón trỏ truyền thêm trọng lượng đều lên dây.' },
+        { id: 8, phase: 1, title: 'Đổi vĩ tại Ngọn vĩ (Tip) — Dây A', bpm: 64, beatsPerBow: 3, bowZone: 'Ngọn vĩ', targetNote: 'A4', droneNote: 'A4', vibratoRequired: false, passThreshold: 78, tip: 'Đừng vươn vai phải ra trước khi tới ngọn vĩ; hãy để khuỷu tay duỗi tự nhiên và cổ tay hơi hạ nhẹ để lông vĩ bám chặt dây.' },
+        { id: 9, phase: 1, title: 'Toàn vĩ chậm rãi (4 phách) — Dây D & A', bpm: 66, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'D4', droneNote: 'D4', vibratoRequired: false, passThreshold: 78, tip: 'Chia đều tốc độ vĩ suốt 4 phách. Khi gần tới gốc hoặc ngọn, giữ tiếng vang ổn định chứ không giảm lực đột ngột.' },
+        { id: 10, phase: 1, title: 'Toàn vĩ nhanh hơn (2 phách) — Kiểm tra GĐ 1', bpm: 78, beatsPerBow: 2, bowZone: 'Toàn vĩ', targetNote: 'A4', droneNote: 'A4', vibratoRequired: false, passThreshold: 80, tip: 'Đổi vĩ mỗi 2 phách đòi hỏi cổ tay phản xạ linh hoạt. Quan sát dải xanh trên màn hình phải liền mạch không đứt qua 4 vạch vàng liên tiếp.' },
+
+        // --- PHASE 2: Note Changes & Smooth String Crossings (11-20) ---
+        { id: 11, phase: 2, title: 'Đổi nốt trong cùng 1 vĩ (D4 - E4)', bpm: 60, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'D4 - E4', droneNote: 'D4', vibratoRequired: false, passThreshold: 78, tip: 'Đặt ngón 1 (E4) xuống dây D thật dứt khoát nhưng nhẹ nhàng, không làm khựng tốc độ vĩ tay phải.' },
+        { id: 12, phase: 2, title: 'Đổi nốt đúng điểm đổi vĩ (E4 → F#4)', bpm: 62, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'E4 - F#4', droneNote: 'D4', vibratoRequired: false, passThreshold: 78, tip: 'Bí quyết: Ngón tay trái (F#4) đặt xuống trước điểm đổi vĩ khoảng 1/20 giây để dây đã sẵn sàng rung khi vĩ vừa đảo chiều.' },
+        { id: 13, phase: 2, title: 'Đổi nốt xuống mượt (A4 → G4) trên dây D', bpm: 64, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'A4 - G4', droneNote: 'D4', vibratoRequired: false, passThreshold: 79, tip: 'Khi nhấc ngón 4 hoặc ngón 3 ra, đừng nhấc quá cao. Giữ áp lực vĩ không đổi để âm thanh trượt sang nốt mới không bị hẫng.' },
+        { id: 14, phase: 2, title: 'Âm giai Rê trưởng chậm (2 nốt / 1 vĩ)', bpm: 66, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'D4 - G4', droneNote: 'D4', vibratoRequired: false, passThreshold: 80, tip: 'Mỗi phách 2 đổi nốt, phách 4 đổi cả nốt lẫn vĩ. Đảm bảo âm lượng giữ phẳng như một đường băng.' },
+        { id: 15, phase: 2, title: 'Chuyển dây mượt D ↔ A trong 1 vĩ', bpm: 60, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'D4 - A4', droneNote: 'D4', vibratoRequired: false, passThreshold: 80, tip: 'Chuẩn bị hạ khuỷu tay phải từ từ đến gần góc dây A trước khi chạm dây, tạo cầu nối âm thanh mềm mại thay vì giật cục.' },
+        { id: 16, phase: 2, title: 'Chuyển dây mượt A ↔ E tại điểm đổi vĩ', bpm: 62, beatsPerBow: 3, bowZone: 'Giữa vĩ', targetNote: 'A4 - E5', droneNote: 'A4', vibratoRequired: false, passThreshold: 80, tip: 'Khi vừa đổi chiều vĩ vừa chuyển sang dây E, hãy dùng chuyển động tròn nhỏ của cổ tay để nối hai dây như đang lướt trên một đường cong.' },
+        { id: 17, phase: 2, title: 'Chuyển dây trầm G ↔ D (Giữ lực ổn định)', bpm: 60, beatsPerBow: 4, bowZone: 'Gốc vĩ', targetNote: 'G3 - D4', droneNote: 'G3', vibratoRequired: false, passThreshold: 81, tip: 'Nâng khuỷu tay phải trọn vẹn cho dây G rồi hạ mượt xuống dây D. Đừng nhấc lông vĩ rời khỏi dây khi chuyển.' },
+        { id: 18, phase: 2, title: 'Đổi nốt + Đổi vĩ tại Gốc vĩ (A4 - B4)', bpm: 66, beatsPerBow: 2, bowZone: 'Gốc vĩ', targetNote: 'A4 - B4', droneNote: 'A4', vibratoRequired: false, passThreshold: 81, tip: 'Tập trung phối hợp tay trái đặt ngón B4 khớp với cú thả lỏng ngón út tay phải ở gốc vĩ.' },
+        { id: 19, phase: 2, title: 'Đổi nốt + Đổi vĩ tại Ngọn vĩ (B4 - C#5)', bpm: 68, beatsPerBow: 2, bowZone: 'Ngọn vĩ', targetNote: 'B4 - C#5', droneNote: 'A4', vibratoRequired: false, passThreshold: 82, tip: 'Ở ngọn vĩ, khi đổi nốt rất dễ vô thức nhấc lực tay phải. Hãy giữ ngón trỏ tay phải đầm và ổn định.' },
+        { id: 20, phase: 2, title: 'Câu Legato 4 nốt liên kết — Kiểm tra GĐ 2', bpm: 74, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'A4 - D5', droneNote: 'A4', vibratoRequired: false, passThreshold: 83, tip: 'Kết hợp đổi nốt trong vĩ và đổi nốt tại điểm đổi vĩ. Tai nghe phải cảm giác như một hơi thở dài không ngắt quãng.' },
+
+        // --- PHASE 3: Continuous Vibrato Foundations (21-30) ---
+        { id: 21, phase: 3, title: 'Khởi động Vibrato đều (Ngón 2 — C#5/F#4)', bpm: 56, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'F#4', droneNote: 'D4', vibratoRequired: true, passThreshold: 76, tip: 'Bắt đầu kích hoạt bộ đo Vibrato! Rung đều ngón 2 (khoảng 4.5–6 Hz), giữ khớp đốt ngón tay đầu mềm dẻo. Quan sát sóng màu xanh dương uốn lượn đều.' },
+        { id: 22, phase: 3, title: 'Vibrato bền bỉ 6 phách (Ngón 3 — G4)', bpm: 58, beatsPerBow: 6, bowZone: 'Toàn vĩ', targetNote: 'G4', droneNote: 'D4', vibratoRequired: true, passThreshold: 77, tip: 'Kéo chậm toàn vĩ 6 phách và giữ biên độ sóng vibrato ổn định từ đầu đến cuối, không để bị hụt hơi ở 2 phách cuối.' },
+        { id: 23, phase: 3, title: 'Vibrato bền bỉ 8 phách (Ngón 1 — B4)', bpm: 60, beatsPerBow: 8, bowZone: 'Toàn vĩ', targetNote: 'B4', droneNote: 'A4', vibratoRequired: true, passThreshold: 77, tip: 'Ngón 1 dễ bị cứng ở gốc ngón trỏ. Tách nhẹ gốc ngón trỏ khỏi cần đàn một chút để cổ tay và ngón tay tự do đung đưa.' },
+        { id: 24, phase: 3, title: 'Vibrato ngón út (Ngón 4 — E5 trên dây A)', bpm: 58, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'E5', droneNote: 'A4', vibratoRequired: true, passThreshold: 78, tip: 'Đưa khuỷu tay trái xoay nhẹ vào trong để ngón 4 đứng tròn và khỏe, tựa nhẹ ngón 3 sát bên để hỗ trợ lực rung đều.' },
+        { id: 25, phase: 3, title: 'Mấu chốt: Đổi vĩ giữa vĩ KHÔNG DỪNG Vibrato (Ngón 2)', bpm: 56, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'C#5', droneNote: 'A4', vibratoRequired: true, passThreshold: 78, tip: 'Lỗi phổ biến nhất: tay trái tự động "đơ" khi tay phải đổi vĩ! Hãy chủ động rung tay trái MẠNH HƠN một chút ngay trước vạch vàng.' },
+        { id: 26, phase: 3, title: 'Đổi vĩ giữa vĩ + Vibrato liên tục (Ngón 3 — D5)', bpm: 58, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'D5', droneNote: 'A4', vibratoRequired: true, passThreshold: 79, tip: 'Tách biệt hai bán cầu não: coi tay trái là một chiếc đồng hồ quả lắc không bao giờ dừng, mặc kệ tay phải đang đổi chiều.' },
+        { id: 27, phase: 3, title: 'Đổi vĩ giữa vĩ + Vibrato liên tục (Ngón 1 — E4)', bpm: 60, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'E4', droneNote: 'D4', vibratoRequired: true, passThreshold: 79, tip: 'Nhìn vào đồ thị sóng xanh dương bên dưới: đường sóng hình sin phải đi xuyên qua vạch đứt màu vàng mà không bị duỗi thẳng.' },
+        { id: 28, phase: 3, title: 'Đổi vĩ giữa vĩ + Vibrato ngón 4 (A4 trên dây D)', bpm: 58, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'A4', droneNote: 'D4', vibratoRequired: true, passThreshold: 80, tip: 'Giữ ngón 4 thư giãn khi đổi vĩ, đừng bóp chặt ngón cái tay trái vào cần đàn vào khoảnh khắc đổi chiều.' },
+        { id: 29, phase: 3, title: 'Đổi vĩ chậm toàn vĩ + Vibrato rộng (G4 dây D)', bpm: 60, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'G4', droneNote: 'D4', vibratoRequired: true, passThreshold: 80, tip: 'Dùng vibrato rộng và ấm (20–35 cents) giúp che phủ hoàn toàn điểm chuyển tiếp của vĩ, tạo cảm giác âm thanh ngân vang.' },
+        { id: 30, phase: 3, title: 'Thử thách GĐ 3: 4 lần đổi vĩ Vibrato không đơ', bpm: 64, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'B4', droneNote: 'A4', vibratoRequired: true, passThreshold: 82, tip: 'Giữ cả dải âm lượng màu xanh lá lẫn sóng vibrato màu xanh dương thật đều qua trọn vẹn 4 lần đổi vĩ.' },
+
+        // --- PHASE 4: Vibrato Across All Bow Zones & Speeds (31-40) ---
+        { id: 31, phase: 4, title: 'Vibrato xuyên điểm đổi vĩ tại Gốc vĩ (Frog)', bpm: 58, beatsPerBow: 3, bowZone: 'Gốc vĩ', targetNote: 'G4', droneNote: 'D4', vibratoRequired: true, passThreshold: 80, tip: 'Ở gốc vĩ tay phải cần sự tập trung cao nên tay trái rất dễ ngừng rung. Hãy đếm thầm nhịp rung của tay trái xuyên qua lúc đảo vĩ.' },
+        { id: 32, phase: 4, title: 'Vibrato xuyên điểm đổi vĩ tại Ngọn vĩ (Tip)', bpm: 58, beatsPerBow: 3, bowZone: 'Ngọn vĩ', targetNote: 'C#5', droneNote: 'A4', vibratoRequired: true, passThreshold: 80, tip: 'Tại ngọn vĩ, giữ tốc độ vibrato hơi nhanh hơn một chút để bù đắp cho độ nhẹ của đầu vĩ, giúp tiếng đàn không bị mỏng đi.' },
+        { id: 33, phase: 4, title: 'Vibrato + Đổi vĩ trên dây trầm G (B3 / C4)', bpm: 56, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'B3', droneNote: 'G3', vibratoRequired: true, passThreshold: 81, tip: 'Trên dây G, sóng vibrato rộng và chậm hơn một chút sẽ cực kỳ vang. Giữ lực tay phải bám sâu xuyên qua điểm đổi vĩ.' },
+        { id: 34, phase: 4, title: 'Vibrato + Đổi vĩ trên dây cao E (F#5 / G5)', bpm: 60, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'F#5', droneNote: 'E5', vibratoRequired: true, passThreshold: 81, tip: 'Trên dây E, giữ vibrato gọn và tinh tế (không quá rộng để tránh phô), đồng thời tay phải giữ tốc độ mượt.' },
+        { id: 35, phase: 4, title: 'Đổi vĩ nhanh 2 phách + Vibrato liên tục', bpm: 72, beatsPerBow: 2, bowZone: 'Giữa vĩ', targetNote: 'B4', droneNote: 'A4', vibratoRequired: true, passThreshold: 82, tip: 'Khi đổi vĩ nhanh hơn (2 phách/vĩ), đừng để nhịp tay phải kéo tay trái rung giật cục theo. Giữ hai tay độc lập.' },
+        { id: 36, phase: 4, title: 'Đổi vĩ nhanh 2 phách tại Gốc vĩ + Vibrato', bpm: 70, beatsPerBow: 2, bowZone: 'Gốc vĩ', targetNote: 'F#4', droneNote: 'D4', vibratoRequired: true, passThreshold: 82, tip: 'Dùng chuyển động ngón tay phải cực nhỏ và mềm mại ở gốc vĩ trong khi tay trái duy trì sóng vibrato đều tăm tắp.' },
+        { id: 37, phase: 4, title: 'Đổi vĩ nhanh 2 phách tại Ngọn vĩ + Vibrato', bpm: 70, beatsPerBow: 2, bowZone: 'Ngọn vĩ', targetNote: 'D5', droneNote: 'A4', vibratoRequired: true, passThreshold: 83, tip: 'Cảm nhận sự bám dính của lông vĩ lên dây A ngay tại ngọn vĩ; không để tiếng bị rơi xuống dưới ngưỡng Gate.' },
+        { id: 38, phase: 4, title: 'Crescendo xuyên qua điểm đổi vĩ + Vibrato', bpm: 60, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'A4', droneNote: 'A4', vibratoRequired: true, passThreshold: 83, tip: 'Tăng dần âm lượng và độ nhanh vibrato khi tiến về vạch vàng, tiếp tục đẩy năng lượng sang chiều vĩ mới mà không bị ngắt.' },
+        { id: 39, phase: 4, title: 'Diminuendo (Nhỏ dần) đổi vĩ không mất tiếng', bpm: 58, beatsPerBow: 4, bowZone: 'Ngọn vĩ', targetNote: 'E5', droneNote: 'E5', vibratoRequired: true, passThreshold: 84, tip: 'Kéo nhỏ (piano) khi đổi vĩ là thử thách khó nhất: giữ lông vĩ hơi nghiêng (ít lông hơn) nhưng vẫn duy trì sóng vibrato nhỏ và đều.' },
+        { id: 40, phase: 4, title: 'Đổi vĩ 1 phách liên tục + Vibrato — Kiểm tra GĐ 4', bpm: 64, beatsPerBow: 1, bowZone: 'Giữa vĩ', targetNote: 'C#5', droneNote: 'A4', vibratoRequired: true, passThreshold: 85, tip: 'Đổi vĩ mỗi phách nhưng tai nghe phải tưởng như chỉ là một nốt ngân dài vô tận có vibrato.' },
+
+        // --- PHASE 5: Cantabile Mastery (41-50) ---
+        { id: 41, phase: 5, title: 'Nối Vibrato qua 2 nốt liền kề (Ngón 1 → 2)', bpm: 60, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'B4 - C#5', droneNote: 'A4', vibratoRequired: true, passThreshold: 85, tip: 'Khi đặt ngón 2 xuống, giữ chuyển động rung của bàn tay trái liên tục như "chuyền đuốc" từ ngón 1 sang ngón 2.' },
+        { id: 42, phase: 5, title: 'Nối Vibrato qua 2 nốt + Đổi vĩ (Ngón 2 → 3)', bpm: 62, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'C#5 - D5', droneNote: 'A4', vibratoRequired: true, passThreshold: 86, tip: 'Đặt ngón 3 xuống ngay trước điểm đổi vĩ trong khi bàn tay vẫn đang rung, tạo đường nối legato hát như giọng người.' },
+        { id: 43, phase: 5, title: 'Nối Vibrato đi xuống (Ngón 3 → 2 → 1)', bpm: 62, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'D5 - B4', droneNote: 'A4', vibratoRequired: true, passThreshold: 86, tip: 'Chuẩn bị sẵn ngón dưới trên dây để ngay khi nhấc ngón trên ra, vibrato lập tức tiếp nối không mất một nhịp nào.' },
+        { id: 44, phase: 5, title: 'Nối Vibrato có ngón út (Ngón 3 ↔ 4)', bpm: 60, beatsPerBow: 4, bowZone: 'Giữa vĩ', targetNote: 'D5 - E5', droneNote: 'A4', vibratoRequired: true, passThreshold: 87, tip: 'Giữ ngón 3 gần ngón 4 để truyền quán tính rung sang ngón út, đảm bảo sóng xanh dương không bị xẹp lúc đổi nốt.' },
+        { id: 45, phase: 5, title: 'Chuyển dây có Vibrato (Dây D → A)', bpm: 60, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'G4 - B4', droneNote: 'D4', vibratoRequired: true, passThreshold: 88, tip: 'Đặt ngón B4 trên dây A trước khi vĩ rời hẳn dây D một khoảnh khắc nhỏ, giữ tay trái rung xuyên qua cú chuyển dây.' },
+        { id: 46, phase: 5, title: 'Chuyển dây có Vibrato (Dây A → E)', bpm: 62, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'D5 - F#5', droneNote: 'A4', vibratoRequired: true, passThreshold: 88, tip: 'Hạ khuỷu tay phải mềm mại từ dây A sang dây E đúng lúc đổi vĩ, giữ âm thanh ngọt và liên tục.' },
+        { id: 47, phase: 5, title: 'Chuyển thế tay (Shifting) nhẹ + Vibrato liền mạch', bpm: 58, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'B4 - D5', droneNote: 'A4', vibratoRequired: true, passThreshold: 89, tip: 'Trượt nhẹ ngón tay lên thế tay 3 (vị trí D5 trên dây A) với áp lực ngón nhẹ rồi lập tức nở vibrato khi chạm đích.' },
+        { id: 48, phase: 5, title: 'Câu giai điệu Cantabile chậm (Dây G & D)', bpm: 56, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'G3 - G4', droneNote: 'G3', vibratoRequired: true, passThreshold: 90, tip: 'Kéo một câu giai điệu trữ tình tự chọn trên dây G và D. Tập trung giữ âm trầm dày ấm và vibrato không bao giờ tắt.' },
+        { id: 49, phase: 5, title: 'Câu giai điệu Cantabile cao (Dây A & E)', bpm: 64, beatsPerBow: 3, bowZone: 'Toàn vĩ', targetNote: 'A4 - A5', droneNote: 'A4', vibratoRequired: true, passThreshold: 92, tip: 'Kết hợp toàn vĩ, đổi vĩ mượt ở cả gốc và ngọn vĩ, đổi nốt linh hoạt với vibrato hát vang rực rỡ.' },
+        { id: 50, phase: 5, title: 'Bậc thầy Legato & Cantabile (Thử thách cuối)', bpm: 66, beatsPerBow: 4, bowZone: 'Toàn vĩ', targetNote: 'Tự do (A4)', droneNote: 'A4', vibratoRequired: true, passThreshold: 95, tip: 'Đỉnh cao kiểm soát: đạt độ mượt ≥ 95% qua 4 lần đổi vĩ liên tiếp với vibrato sống động không tì vết. Bạn đã làm chủ kỹ thuật đổi vĩ vô hình!' }
+      ];
+
+      /* =========================================================
+         2. STATE & PERSISTENCE (localStorage)
+         ========================================================= */
+      const STORAGE_KEY = 'legato_studio_progress_v1';
+      let progressData = {};
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) progressData = JSON.parse(saved);
+      } catch (e) {
+        progressData = {};
+      }
+
+      function saveProgress() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(progressData));
+        } catch (e) {
+          // Ignore storage quota errors
+        }
+      }
+
+      const state = {
+        currentLevelId: 1,
+        phaseFilter: 0, // 0 = all
+        bpm: 60,
+        noiseGateDb: -44,
+        droneVolume: 0.35,
+
+        // Audio Modes
+        micActive: false,
+        demoActive: false,
+        demoMode: 'smooth', // 'smooth' | 'dropout'
+        metroEnabled: false,
+        droneEnabled: false,
+
+        // Bow & Metronome Timing
+        bowDirection: 1, // 1 = Down (Π), -1 = Up (V)
+        bowPhase: 0,     // 0.0 to 1.0 within current bow
+        currentBeat: 0,  // 0 to beatsPerBow - 1
+        lastFrameTime: 0,
+        lastBeatTriggered: -1,
+
+        // Session Evaluation
+        totalBowChanges: 0,
+        smoothBowChanges: 0,
+        cycleSmoothSum: 0,
+        cycleSamples: 0,
+        cyclePassedNotified: false,
+
+        // Live Audio Telemetry
+        currentDb: -100,
+        runningBowDb: -30,
+        detectedFreq: 0,
+        detectedNote: '--',
+        detectedCents: 0,
+        vibratoRateHz: 0,
+        vibratoWidthCents: 0,
+        vibratoActive: false,
+
+        // Rolling History Buffers for Canvas & Detectors
+        // Each sample: { t, db, normVol, isDropout, pitchDevCents, hasPitch, vibFreeze }
+        history: [],
+        // Bow change markers: { t, dir, status: 'pending'|'smooth'|'dropout'|'vib_freeze', evaluated, minDb, vibDevs: [] }
+        bowEvents: [],
+        // Recent pitch frequencies for local center estimation (for vibrato wave)
+        recentFreqs: []
+      };
+
+      /* =========================================================
+         3. DOM REFERENCES
+         ========================================================= */
+      const el = {
+        sidebar: document.getElementById('sidebar'),
+        drawerBackdrop: document.getElementById('drawerBackdrop'),
+        openDrawerBtn: document.getElementById('openDrawerBtn'),
+        closeDrawerBtn: document.getElementById('closeDrawerBtn'),
+        phaseFilters: document.getElementById('phaseFilters'),
+        levelList: document.getElementById('levelList'),
+        progressText: document.getElementById('progressText'),
+        progressFill: document.getElementById('progressFill'),
+
+        activePhaseBadge: document.getElementById('activePhaseBadge'),
+        activeLevelTitle: document.getElementById('activeLevelTitle'),
+        activeLevelSpecs: document.getElementById('activeLevelSpecs'),
+        prevLevelBtn: document.getElementById('prevLevelBtn'),
+        nextLevelBtn: document.getElementById('nextLevelBtn'),
+
+        statusBanner: document.getElementById('statusBanner'),
+        statusBannerText: document.getElementById('statusBannerText'),
+        statusBannerClose: document.getElementById('statusBannerClose'),
+
+        bowSymbol: document.getElementById('bowSymbol'),
+        bowDirLabel: document.getElementById('bowDirLabel'),
+        bowZoneSub: document.getElementById('bowZoneSub'),
+        bowWarningPill: document.getElementById('bowWarningPill'),
+        beatDots: document.getElementById('beatDots'),
+        bowActiveZone: document.getElementById('bowActiveZone'),
+        bowCursor: document.getElementById('bowCursor'),
+
+        canvasContainer: document.getElementById('canvasContainer'),
+        canvas: document.getElementById('visualizerCanvas'),
+        liveDbReadout: document.getElementById('liveDbReadout'),
+
+        audioSourceTag: document.getElementById('audioSourceTag'),
+        micToggleBtn: document.getElementById('micToggleBtn'),
+        micBtnLabel: document.getElementById('micBtnLabel'),
+        demoToggleBtn: document.getElementById('demoToggleBtn'),
+        demoBtnLabel: document.getElementById('demoBtnLabel'),
+        demoModeSelect: document.getElementById('demoModeSelect'),
+        gateSlider: document.getElementById('gateSlider'),
+        gateVal: document.getElementById('gateVal'),
+
+        metroToggleBtn: document.getElementById('metroToggleBtn'),
+        metroBtnLabel: document.getElementById('metroBtnLabel'),
+        droneToggleBtn: document.getElementById('droneToggleBtn'),
+        droneBtnLabel: document.getElementById('droneBtnLabel'),
+        bpmSlider: document.getElementById('bpmSlider'),
+        bpmVal: document.getElementById('bpmVal'),
+        resetBpmBtn: document.getElementById('resetBpmBtn'),
+        droneVolSlider: document.getElementById('droneVolSlider'),
+        droneVolVal: document.getElementById('droneVolVal'),
+
+        metricSmoothness: document.getElementById('metricSmoothness'),
+        metricSmoothSub: document.getElementById('metricSmoothSub'),
+        metricBowChanges: document.getElementById('metricBowChanges'),
+        metricBowSub: document.getElementById('metricBowSub'),
+        metricVibrato: document.getElementById('metricVibrato'),
+        metricVibSub: document.getElementById('metricVibSub'),
+        metricNote: document.getElementById('metricNote'),
+        metricCents: document.getElementById('metricCents'),
+        tunerNeedle: document.getElementById('tunerNeedle'),
+
+        coachingTip: document.getElementById('coachingTip'),
+        resetSessionBtn: document.getElementById('resetSessionBtn'),
+        completeLevelBtn: document.getElementById('completeLevelBtn')
+      };
+
+      const ctx2d = el.canvas.getContext('2d');
+
+      /* =========================================================
+         4. WEB AUDIO ENGINE (MIC, METRONOME, DRONE, DEMO SYNTH)
+         ========================================================= */
+      let audioCtx = null;
+      let analyser = null;
+      let timeDomainBuf = null;
+
+      // Mic nodes
+      let micStream = null;
+      let micSource = null;
+
+      // Drone nodes
+      let droneMasterGain = null;
+      let droneOscs = [];
+
+      // Demo Synth nodes (routed to BOTH analyser AND speakers for 100% genuine DSP)
+      let demoGain = null;
+      let demoOsc1 = null;
+      let demoOsc2 = null;
+      let demoFilter = null;
+      let demoLfo = null;
+      let demoLfoGain = null;
+
+      async function ensureAudioContext() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextClass();
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 2048;
+          analyser.smoothingTimeConstant = 0.0;
+          timeDomainBuf = new Float32Array(analyser.fftSize);
+        }
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      // --- UI Banner Helper ---
+      let bannerTimer = null;
+      function showBanner(msg, type = 'info', autoHideMs = 6000) {
+        el.statusBannerText.textContent = msg;
+        el.statusBanner.className = `status-banner show ${type}`;
+        if (bannerTimer) clearTimeout(bannerTimer);
+        if (autoHideMs > 0) {
+          bannerTimer = setTimeout(() => {
+            el.statusBanner.classList.remove('show');
+          }, autoHideMs);
+        }
+      }
+
+      function hideBanner() {
+        el.statusBanner.classList.remove('show');
+      }
+
+      // --- Microphone Control ---
+      async function startMic() {
+        try {
+          if (state.demoActive) stopDemo();
+          await ensureAudioContext();
+
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Trình duyệt không hỗ trợ thu âm Micro (getUserMedia).');
+          }
+
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false
+            }
+          });
+
+          micSource = audioCtx.createMediaStreamSource(micStream);
+          micSource.connect(analyser);
+
+          state.micActive = true;
+          resetSessionMetrics();
+          updateAudioSourceUI();
+          showBanner('Micro đã sẵn sàng! Hãy kéo đàn theo thanh dẫn hướng vĩ ở trên.', 'info', 4000);
+        } catch (err) {
+          console.error('Mic error:', err);
+          let reason = 'Không thể truy cập Micro. Vui lòng kiểm tra quyền Micro trên trình duyệt.';
+          if (err && err.name === 'NotAllowedError') {
+            reason = 'Bạn đã từ chối quyền Micro. Hãy cấp quyền Micro trong cài đặt trình duyệt hoặc dùng "Chạy mô phỏng mẫu" để thử nghiệm.';
+          } else if (err && err.name === 'NotFoundError') {
+            reason = 'Không tìm thấy thiết bị Micro nào được kết nối.';
+          }
+          showBanner(reason, 'error', 8000);
+          stopMic();
+        }
+      }
+
+      function stopMic() {
+        if (micSource) {
+          try { micSource.disconnect(); } catch (e) {}
+          micSource = null;
+        }
+        if (micStream) {
+          micStream.getTracks().forEach(t => t.stop());
+          micStream = null;
+        }
+        state.micActive = false;
+        updateAudioSourceUI();
+      }
+
+      // --- Demo / Simulation Violin Synth ---
+      async function startDemo() {
+        try {
+          if (state.micActive) stopMic();
+          await ensureAudioContext();
+
+          const lv = getCurrentLevel();
+          const baseFreq = NOTE_FREQS[lv.droneNote] || 440;
+
+          // Rich bowed-string-like voice
+          demoOsc1 = audioCtx.createOscillator();
+          demoOsc2 = audioCtx.createOscillator();
+          demoOsc1.type = 'sawtooth';
+          demoOsc2.type = 'triangle';
+          demoOsc1.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+          demoOsc2.frequency.setValueAtTime(baseFreq * 2, audioCtx.currentTime);
+
+          const osc2Gain = audioCtx.createGain();
+          osc2Gain.gain.value = 0.22;
+
+          demoFilter = audioCtx.createBiquadFilter();
+          demoFilter.type = 'lowpass';
+          demoFilter.frequency.setValueAtTime(1650, audioCtx.currentTime);
+          demoFilter.Q.value = 1.4;
+
+          // Vibrato LFO
+          demoLfo = audioCtx.createOscillator();
+          demoLfo.type = 'sine';
+          demoLfo.frequency.setValueAtTime(5.6, audioCtx.currentTime);
+
+          demoLfoGain = audioCtx.createGain();
+          // ~24 cents vibrato width if vibratoRequired, or subtle 2 cents if not
+          const vibHzDepth = lv.vibratoRequired ? (baseFreq * 0.015) : 0;
+          demoLfoGain.gain.setValueAtTime(vibHzDepth, audioCtx.currentTime);
+
+          demoLfo.connect(demoLfoGain);
+          demoLfoGain.connect(demoOsc1.frequency);
+
+          demoGain = audioCtx.createGain();
+          demoGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+          demoGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.15);
+
+          demoOsc1.connect(demoFilter);
+          demoOsc2.connect(osc2Gain);
+          osc2Gain.connect(demoFilter);
+          demoFilter.connect(demoGain);
+
+          // Route to BOTH Analyser and Speakers
+          demoGain.connect(analyser);
+          demoGain.connect(audioCtx.destination);
+
+          demoOsc1.start();
+          demoOsc2.start();
+          demoLfo.start();
+
+          state.demoActive = true;
+          resetSessionMetrics();
+          updateAudioSourceUI();
+
+          const modeText = state.demoMode === 'smooth'
+            ? 'Đang phát Mẫu mượt (Chuẩn): chú ý dải âm lượng xanh lá và sóng vibrato đi xuyên vạch vàng.'
+            : 'Đang phát Mẫu bị mất tiếng (Lỗi thường gặp): chú ý vùng đỏ hụt tiếng và sóng vibrato bị đơ tại vạch vàng!';
+          showBanner(modeText, 'info', 5500);
+        } catch (err) {
+          console.error('Demo error:', err);
+          showBanner('Không thể khởi tạo âm thanh mô phỏng.', 'error');
+        }
+      }
+
+      function stopDemo() {
+        if (demoGain && audioCtx) {
+          try {
+            demoGain.gain.cancelScheduledValues(audioCtx.currentTime);
+            demoGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.03);
+          } catch (e) {}
+        }
+        setTimeout(() => {
+          [demoOsc1, demoOsc2, demoLfo].forEach(osc => {
+            if (osc) { try { osc.stop(); osc.disconnect(); } catch (e) {} }
+          });
+          if (demoFilter) { try { demoFilter.disconnect(); } catch (e) {} }
+          if (demoGain) { try { demoGain.disconnect(); } catch (e) {} }
+          demoOsc1 = demoOsc2 = demoLfo = demoFilter = demoGain = demoLfoGain = null;
+        }, 80);
+
+        state.demoActive = false;
+        updateAudioSourceUI();
+      }
+
+      // Modulates demo synth dynamically around the bow-change moment
+      function updateDemoSynthEnvelope() {
+        if (!state.demoActive || !audioCtx || !demoGain || !demoLfoGain) return;
+        const lv = getCurrentLevel();
+        const baseFreq = NOTE_FREQS[lv.droneNote] || 440;
+        const now = audioCtx.currentTime;
+
+        // Distance to nearest bow turn (0 at turn, 0.5 at mid-bow)
+        const distToTurn = Math.min(state.bowPhase, 1 - state.bowPhase);
+
+        if (state.demoMode === 'smooth') {
+          // Seamless bow change: very slight natural 1dB breath, full vibrato
+          const targetGain = 0.18 - (distToTurn < 0.04 ? 0.015 : 0);
+          demoGain.gain.setTargetAtTime(targetGain, now, 0.025);
+          const vibDepth = lv.vibratoRequired ? (baseFreq * 0.0155) : 0;
+          demoLfoGain.gain.setTargetAtTime(vibDepth, now, 0.03);
+        } else {
+          // Dropout / Vibrato Freeze error mode: sharp dip & flat pitch near bow turn
+          if (distToTurn < 0.09) {
+            demoGain.gain.setTargetAtTime(0.006, now, 0.02);
+            demoLfoGain.gain.setTargetAtTime(0, now, 0.015);
+          } else {
+            demoGain.gain.setTargetAtTime(0.18, now, 0.04);
+            const vibDepth = lv.vibratoRequired ? (baseFreq * 0.0155) : 0;
+            demoLfoGain.gain.setTargetAtTime(vibDepth, now, 0.04);
+          }
+        }
+      }
+
+      // --- Metronome Woodblock Sound ---
+      function playMetronomeClick(isBowChangeBeat) {
+        if (!state.metroEnabled || !audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(isBowChangeBeat ? 980 : 640, now);
+        osc.frequency.exponentialRampToValueAtTime(isBowChangeBeat ? 420 : 280, now + 0.045);
+
+        gain.gain.setValueAtTime(isBowChangeBeat ? 0.22 : 0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+
+      // --- Warm Cello/Tanpura Drone ---
+      async function startDrone() {
+        await ensureAudioContext();
+        stopDrone(true);
+
+        const lv = getCurrentLevel();
+        const rootFreq = (NOTE_FREQS[lv.droneNote] || 293.66) / 2; // One octave lower for warm cello drone
+
+        droneMasterGain = audioCtx.createGain();
+        droneMasterGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        droneMasterGain.gain.linearRampToValueAtTime(state.droneVolume * 0.16, audioCtx.currentTime + 0.35);
+
+        const lpf = audioCtx.createBiquadFilter();
+        lpf.type = 'lowpass';
+        lpf.frequency.setValueAtTime(620, audioCtx.currentTime);
+        lpf.Q.value = 0.8;
+
+        // 3 warm layered oscillators: root triangle, slightly detuned sawtooth, and soft fifth
+        const specs = [
+          { type: 'triangle', freq: rootFreq, gain: 0.55 },
+          { type: 'sawtooth', freq: rootFreq * 1.002, gain: 0.22 },
+          { type: 'triangle', freq: rootFreq * 1.5, gain: 0.18 }
+        ];
+
+        droneOscs = specs.map(s => {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          osc.type = s.type;
+          osc.frequency.setValueAtTime(s.freq, audioCtx.currentTime);
+          g.gain.value = s.gain;
+          osc.connect(g);
+          g.connect(lpf);
+          osc.start();
+          return osc;
+        });
+
+        lpf.connect(droneMasterGain);
+        droneMasterGain.connect(audioCtx.destination);
+
+        state.droneEnabled = true;
+        updateDroneUI();
+      }
+
+      function stopDrone(silent = false) {
+        if (droneMasterGain && audioCtx) {
+          try {
+            droneMasterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+            droneMasterGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.05);
+          } catch (e) {}
+        }
+        const toStop = droneOscs.slice();
+        droneOscs = [];
+        setTimeout(() => {
+          toStop.forEach(o => { try { o.stop(); o.disconnect(); } catch (e) {} });
+        }, 140);
+
+        if (!silent) {
+          state.droneEnabled = false;
+          updateDroneUI();
+        }
+      }
+
+      /* =========================================================
+         5. DSP: RMS VOLUME, AUTOCORRELATION PITCH & VIBRATO
+         ========================================================= */
+      const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+      function freqToNoteInfo(freq) {
+        if (!freq || freq < 160 || freq > 2600) return { name: '--', cents: 0 };
+        const midiFloat = 69 + 12 * Math.log2(freq / 440);
+        const midiRound = Math.round(midiFloat);
+        const cents = Math.round((midiFloat - midiRound) * 100);
+        const octave = Math.floor(midiRound / 12) - 1;
+        const name = NOTE_NAMES[((midiRound % 12) + 12) % 12] + octave;
+        return { name, cents };
+      }
+
+      // Fast normalized autocorrelation tuned for Violin range (~185Hz - ~2100Hz)
+      function detectPitchAutocorrelation(buf, sampleRate) {
+        const size = buf.length;
+        let rms = 0;
+        for (let i = 0; i < size; i++) {
+          rms += buf[i] * buf[i];
+        }
+        rms = Math.sqrt(rms / size);
+        if (rms < 0.004) return 0;
+
+        const minLag = Math.max(16, Math.floor(sampleRate / 2100));
+        const maxLag = Math.min(Math.floor(size / 2), Math.ceil(sampleRate / 180));
+
+        // Compute normalized autocorrelation for candidate lags
+        let bestLag = -1;
+        let bestCorr = 0;
+        const corrs = new Float32Array(maxLag + 2);
+
+        for (let lag = minLag; lag <= maxLag; lag++) {
+          let sum = 0;
+          let normA = 0;
+          let normB = 0;
+          const limit = size - lag;
+          // Step by 2 for speed while retaining full harmonic accuracy
+          for (let i = 0; i < limit; i += 2) {
+            const a = buf[i];
+            const b = buf[i + lag];
+            sum += a * b;
+            normA += a * a;
+            normB += b * b;
+          }
+          const denom = Math.sqrt(normA * normB);
+          const corr = denom > 0 ? sum / denom : 0;
+          corrs[lag] = corr;
+        }
+
+        // Find first strong peak above threshold to avoid sub-harmonic octave errors
+        const threshold = 0.72;
+        let inPeak = false;
+        let localMaxLag = -1;
+        let localMaxCorr = 0;
+
+        for (let lag = minLag + 1; lag < maxLag; lag++) {
+          const c = corrs[lag];
+          if (c > threshold && c >= corrs[lag - 1] && c >= corrs[lag + 1]) {
+            if (c > bestCorr) {
+              bestCorr = c;
+              bestLag = lag;
+            }
+            // If we found a very strong fundamental peak early, stop before 2x lag
+            if (c > 0.88) {
+              localMaxCorr = c;
+              localMaxLag = lag;
+              inPeak = true;
+              break;
+            }
+          }
+        }
+
+        const chosenLag = inPeak ? localMaxLag : bestLag;
+        if (chosenLag <= 0 || (inPeak ? localMaxCorr : bestCorr) < 0.65) return 0;
+
+        // Parabolic interpolation around chosenLag for sub-cent smoothness
+        const y1 = corrs[chosenLag - 1] || 0;
+        const y2 = corrs[chosenLag];
+        const y3 = corrs[chosenLag + 1] || 0;
+        const denom = (y1 - 2 * y2 + y3);
+        const shift = denom !== 0 ? 0.5 * (y1 - y3) / denom : 0;
+        const refinedLag = chosenLag + Math.max(-0.5, Math.min(0.5, shift));
+
+        return sampleRate / refinedLag;
+      }
+
+      // Compute Vibrato Rate (Hz) & Width (cents) from recent history (~1.1s)
+      function analyzeVibrato(nowMs) {
+        const windowMs = 1100;
+        const pts = [];
+        for (let i = state.history.length - 1; i >= 0; i--) {
+          const h = state.history[i];
+          if (nowMs - h.t > windowMs) break;
+          if (h.hasPitch) pts.push(h);
+        }
+        pts.reverse();
+
+        if (pts.length < 18) {
+          state.vibratoRateHz = 0;
+          state.vibratoWidthCents = 0;
+          state.vibratoActive = false;
+          return;
+        }
+
+        // Compute mean and amplitude (RMS * sqrt(2) approximates peak amplitude)
+        let mean = 0;
+        for (let i = 0; i < pts.length; i++) mean += pts[i].pitchDevCents;
+        mean /= pts.length;
+
+        let sumSq = 0;
+        let zeroCrossings = 0;
+        let prevSign = 0;
+        for (let i = 0; i < pts.length; i++) {
+          const v = pts[i].pitchDevCents - mean;
+          sumSq += v * v;
+          const sign = v >= 0 ? 1 : -1;
+          if (prevSign !== 0 && sign !== prevSign && Math.abs(v) > 2.5) {
+            zeroCrossings++;
+          }
+          if (Math.abs(v) > 2.5) prevSign = sign;
+        }
+
+        const stdDev = Math.sqrt(sumSq / pts.length);
+        const widthPeak = Math.round(stdDev * 1.414); // ± cents
+        const spanSec = Math.max(0.25, (pts[pts.length - 1].t - pts[0].t) / 1000);
+        const rateHz = (zeroCrossings / 2) / spanSec;
+
+        state.vibratoWidthCents = widthPeak;
+        state.vibratoRateHz = Number(rateHz.toFixed(1));
+        state.vibratoActive = (rateHz >= 3.2 && rateHz <= 9.5 && widthPeak >= 8);
+      }
+
+      /* =========================================================
+         6. BOW CLOCK, DROPOUT & VIBRATO FREEZE DETECTORS
+         ========================================================= */
+      function getCurrentLevel() {
+        return LEVELS.find(l => l.id === state.currentLevelId) || LEVELS[0];
+      }
+
+      function resetSessionMetrics() {
+        state.totalBowChanges = 0;
+        state.smoothBowChanges = 0;
+        state.cycleSmoothSum = 0;
+        state.cycleSamples = 0;
+        state.cyclePassedNotified = false;
+        state.bowEvents = [];
+        state.history = [];
+        state.recentFreqs = [];
+        state.bowPhase = 0;
+        state.bowDirection = 1;
+        state.lastBeatTriggered = -1;
+        state.runningBowDb = -28;
+        updateMetricsUI();
+      }
+
+      function processAudioAndTiming(nowMs, dtSec) {
+        const lv = getCurrentLevel();
+        const isListening = state.micActive || state.demoActive;
+
+        // 1. Advance Bow Guide Clock when active OR when metronome is on
+        if (isListening || state.metroEnabled) {
+          const beatsPerSec = state.bpm / 60;
+          const bowDurationSec = lv.beatsPerBow / beatsPerSec;
+          const prevPhase = state.bowPhase;
+          state.bowPhase += dtSec / bowDurationSec;
+
+          // Check beat clicks
+          const beatIdx = Math.floor(state.bowPhase * lv.beatsPerBow);
+          if (beatIdx !== state.lastBeatTriggered && beatIdx < lv.beatsPerBow) {
+            state.lastBeatTriggered = beatIdx;
+            state.currentBeat = beatIdx;
+            playMetronomeClick(beatIdx === 0);
+            updateBeatDotsUI();
+          }
+
+          // Bow Change Trigger!
+          if (state.bowPhase >= 1.0) {
+            state.bowPhase -= 1.0;
+            state.bowDirection *= -1;
+            state.lastBeatTriggered = 0;
+            state.currentBeat = 0;
+            playMetronomeClick(true);
+            updateBeatDotsUI();
+
+            if (isListening) {
+              // Gather pre-change 250ms samples into the new bow change event
+              const ev = {
+                t: nowMs,
+                dir: state.bowDirection,
+                status: 'pending',
+                evaluated: false,
+                minDb: 0,
+                dropoutFrames: 0,
+                vibDevs: [],
+                hadSoundBefore: state.runningBowDb > state.noiseGateDb + 4
+              };
+
+              for (let i = state.history.length - 1; i >= 0; i--) {
+                const h = state.history[i];
+                if (nowMs - h.t > 250) break;
+                if (h.db < ev.minDb) ev.minDb = h.db;
+                if (h.isDropout) ev.dropoutFrames++;
+                if (h.hasPitch) ev.vibDevs.push(h.pitchDevCents);
+              }
+              state.bowEvents.push(ev);
+            }
+          }
+
+          updateBowGuideUI();
+        }
+
+        // 2. Update Demo Synth Envelope if Demo is running
+        if (state.demoActive) {
+          updateDemoSynthEnvelope();
+        }
+
+        // 3. Read Real-Time Audio Buffer from Analyser
+        if (isListening && analyser && timeDomainBuf) {
+          analyser.getFloatTimeDomainData(timeDomainBuf);
+
+          let sumSq = 0;
+          for (let i = 0; i < timeDomainBuf.length; i++) {
+            sumSq += timeDomainBuf[i] * timeDomainBuf[i];
+          }
+          const rms = Math.sqrt(sumSq / timeDomainBuf.length);
+          const db = rms > 0.00001 ? 20 * Math.log10(rms) : -100;
+          state.currentDb = db;
+
+          const gate = state.noiseGateDb;
+          const aboveGate = db > gate;
+
+          // Update running average bow volume during steady middle of bow (20%..80%)
+          if (aboveGate && state.bowPhase > 0.2 && state.bowPhase < 0.8) {
+            state.runningBowDb = state.runningBowDb * 0.96 + db * 0.04;
+          }
+
+          // Normalized volume (0..1) for ribbon thickness
+          const normVol = Math.max(0, Math.min(1, (db - gate) / Math.max(12, (-12 - gate))));
+
+          // Pitch Detection
+          let freq = 0;
+          let pitchDevCents = 0;
+          let hasPitch = false;
+
+          if (aboveGate) {
+            freq = detectPitchAutocorrelation(timeDomainBuf, audioCtx.sampleRate);
+            if (freq > 0) {
+              hasPitch = true;
+              state.detectedFreq = freq;
+              const info = freqToNoteInfo(freq);
+              state.detectedNote = info.name;
+              state.detectedCents = info.cents;
+
+              // Maintain a short local center frequency (~450ms) so vibrato wave oscillates around 0 cents
+              // even when switching notes! If jump > 90 cents, reset center immediately for clean note change.
+              if (state.recentFreqs.length > 0) {
+                const lastF = state.recentFreqs[state.recentFreqs.length - 1].f;
+                const jumpCents = Math.abs(1200 * Math.log2(freq / lastF));
+                if (jumpCents > 90) {
+                  state.recentFreqs = [];
+                }
+              }
+              state.recentFreqs.push({ t: nowMs, f: freq });
+              while (state.recentFreqs.length > 0 && nowMs - state.recentFreqs[0].t > 500) {
+                state.recentFreqs.shift();
+              }
+
+              let avgF = 0;
+              for (let i = 0; i < state.recentFreqs.length; i++) avgF += state.recentFreqs[i].f;
+              avgF /= state.recentFreqs.length;
+
+              pitchDevCents = Math.max(-60, Math.min(60, 1200 * Math.log2(freq / avgF)));
+            }
+          } else {
+            state.detectedFreq = 0;
+            state.detectedNote = '--';
+            state.detectedCents = 0;
+          }
+
+          // Determine if this frame is a sound dropout
+          const sharpDrop = (state.runningBowDb > gate + 8) && (db < state.runningBowDb - 13);
+          const isDropout = !aboveGate || sharpDrop;
+
+          // Record frame in scrolling history
+          state.history.push({
+            t: nowMs,
+            db,
+            normVol,
+            isDropout,
+            pitchDevCents,
+            hasPitch
+          });
+
+          // Track continuous smoothness score when player is actively playing
+          if (state.runningBowDb > gate + 4) {
+            state.cycleSamples++;
+            if (!isDropout) state.cycleSmoothSum++;
+          }
+
+          // Evaluate active bow-change events (±250ms window)
+          for (let i = 0; i < state.bowEvents.length; i++) {
+            const ev = state.bowEvents[i];
+            if (ev.evaluated) continue;
+
+            if (nowMs - ev.t <= 250) {
+              if (db < ev.minDb) ev.minDb = db;
+              if (isDropout) ev.dropoutFrames++;
+              if (hasPitch) ev.vibDevs.push(pitchDevCents);
+            } else {
+              // Window closed! Finalize evaluation
+              ev.evaluated = true;
+
+              // Only count if user was actually playing before/during the bow change
+              if (ev.hadSoundBefore || ev.vibDevs.length > 4) {
+                state.totalBowChanges++;
+
+                // 1. Check Dropout
+                const hadDropout = ev.dropoutFrames >= 4 || ev.minDb < gate;
+
+                // 2. Check Vibrato Freeze (Levels 21-50)
+                let vibFrozen = false;
+                if (lv.vibratoRequired) {
+                  if (ev.vibDevs.length < 5) {
+                    vibFrozen = true;
+                  } else {
+                    let m = 0;
+                    for (let k = 0; k < ev.vibDevs.length; k++) m += ev.vibDevs[k];
+                    m /= ev.vibDevs.length;
+                    let vSum = 0;
+                    for (let k = 0; k < ev.vibDevs.length; k++) vSum += (ev.vibDevs[k] - m) ** 2;
+                    const std = Math.sqrt(vSum / ev.vibDevs.length);
+                    if (std < 4.2) vibFrozen = true;
+                  }
+                }
+
+                if (hadDropout) {
+                  ev.status = 'dropout';
+                } else if (vibFrozen) {
+                  ev.status = 'vib_freeze';
+                } else {
+                  ev.status = 'smooth';
+                  state.smoothBowChanges++;
+                }
+
+                checkAutoPassCycle();
+              } else {
+                ev.status = 'idle';
+              }
+            }
+          }
+
+          // Trim history older than 9 seconds
+          const cutoff = nowMs - 9000;
+          while (state.history.length > 0 && state.history[0].t < cutoff) {
+            state.history.shift();
+          }
+          while (state.bowEvents.length > 0 && state.bowEvents[0].t < cutoff) {
+            state.bowEvents.shift();
+          }
+
+          analyzeVibrato(nowMs);
+        }
+      }
+
+      function getCurrentSmoothnessPct() {
+        if (state.cycleSamples < 15) return null;
+        const contPct = (state.cycleSmoothSum / state.cycleSamples) * 100;
+        if (state.totalBowChanges === 0) return Math.round(contPct);
+        const bowPct = (state.smoothBowChanges / state.totalBowChanges) * 100;
+        return Math.round(contPct * 0.55 + bowPct * 0.45);
+      }
+
+      function checkAutoPassCycle() {
+        const lv = getCurrentLevel();
+        if (state.totalBowChanges >= 4 && !state.cyclePassedNotified) {
+          const score = getCurrentSmoothnessPct() || 0;
+          if (score >= lv.passThreshold) {
+            state.cyclePassedNotified = true;
+            markLevelCompleted(lv.id, score);
+            showBanner(
+              `Tuyệt vời! Bạn đã hoàn thành Level ${lv.id} với độ mượt ${score}% (Mục tiêu ≥ ${lv.passThreshold}%). Nhấn "Tiếp →" để sang Level kế tiếp!`,
+              'success',
+              9000
+            );
+          }
+        }
+      }
+
+      function markLevelCompleted(levelId, score) {
+        const prev = progressData[levelId] || { completed: false, bestScore: 0 };
+        progressData[levelId] = {
+          completed: true,
+          bestScore: Math.max(prev.bestScore || 0, score)
+        };
+        saveProgress();
+        renderSidebarLevels();
+        updateProgressHeader();
+      }
+
+      /* =========================================================
+         7. HIGH-DPI 60FPS DUAL-TRACK VISUALIZER CANVAS
+         ========================================================= */
+      let canvasWidth = 600;
+      let canvasHeight = 300;
+
+      function resizeCanvas() {
+        const rect = el.canvasContainer.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvasWidth = Math.max(200, Math.floor(rect.width));
+        canvasHeight = Math.max(200, Math.floor(rect.height));
+        el.canvas.width = canvasWidth * dpr;
+        el.canvas.height = canvasHeight * dpr;
+        ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function drawVisualizer(nowMs) {
+        const w = canvasWidth;
+        const h = canvasHeight;
+        const lv = getCurrentLevel();
+
+        ctx2d.clearRect(0, 0, w, h);
+
+        // Background
+        ctx2d.fillStyle = '#0c0e12';
+        ctx2d.fillRect(0, 0, w, h);
+
+        const track1Top = 0;
+        const track1H = Math.floor(h * 0.52);
+        const track2Top = track1H;
+        const track2H = h - track1H;
+        const t1Mid = track1Top + track1H / 2;
+        const t2Mid = track2Top + track2H / 2;
+
+        // Divider line between Track 1 and Track 2
+        ctx2d.strokeStyle = '#262b38';
+        ctx2d.lineWidth = 1;
+        ctx2d.beginPath();
+        ctx2d.moveTo(0, track2Top);
+        ctx2d.lineTo(w, track2Top);
+        ctx2d.stroke();
+
+        // Subtle reference guide lines in Track 1
+        ctx2d.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx2d.beginPath();
+        ctx2d.moveTo(0, t1Mid);
+        ctx2d.lineTo(w, t1Mid);
+        ctx2d.stroke();
+
+        // Subtle ±25 cents and 0-cent lines in Track 2
+        ctx2d.strokeStyle = 'rgba(56, 189, 248, 0.14)';
+        ctx2d.beginPath();
+        ctx2d.moveTo(0, t2Mid);
+        ctx2d.lineTo(w, t2Mid);
+        ctx2d.stroke();
+
+        const centsToY = (c) => t2Mid - (c / 60) * (track2H * 0.40);
+        ctx2d.setLineDash([4, 4]);
+        ctx2d.strokeStyle = 'rgba(255,255,255,0.06)';
+        [25, -25].forEach(c => {
+          const y = centsToY(c);
+          ctx2d.beginPath();
+          ctx2d.moveTo(0, y);
+          ctx2d.lineTo(w, y);
+          ctx2d.stroke();
+        });
+        ctx2d.setLineDash([]);
+
+        // Time window visible on screen (7.5 seconds)
+        const timeSpanMs = 7500;
+        const rightPad = 24;
+        const usableW = w - rightPad;
+        const timeToX = (t) => usableW - ((nowMs - t) / timeSpanMs) * usableW;
+
+        // --- TRACK 1: SOUND CONTINUITY RIBBON ---
+        const hist = state.history;
+        if (hist.length > 1) {
+          const maxHalfThick = track1H * 0.36;
+
+          for (let i = 1; i < hist.length; i++) {
+            const p0 = hist[i - 1];
+            const p1 = hist[i];
+            const x0 = timeToX(p0.t);
+            const x1 = timeToX(p1.t);
+            if (x1 < 0 || x0 > w) continue;
+
+            const r0 = Math.max(1.5, p0.normVol * maxHalfThick);
+            const r1 = Math.max(1.5, p1.normVol * maxHalfThick);
+
+            if (p1.isDropout) {
+              ctx2d.fillStyle = 'rgba(239, 68, 68, 0.65)';
+            } else {
+              ctx2d.fillStyle = 'rgba(46, 204, 113, 0.72)';
+            }
+
+            ctx2d.beginPath();
+            ctx2d.moveTo(x0, t1Mid - r0);
+            ctx2d.lineTo(x1, t1Mid - r1);
+            ctx2d.lineTo(x1, t1Mid + r1);
+            ctx2d.lineTo(x0, t1Mid + r0);
+            ctx2d.closePath();
+            ctx2d.fill();
+          }
+
+          // Top/Bottom glowing contour line for Track 1
+          ctx2d.lineWidth = 1.6;
+          ctx2d.strokeStyle = 'rgba(134, 239, 172, 0.75)';
+          ctx2d.beginPath();
+          let started = false;
+          for (let i = 0; i < hist.length; i++) {
+            const p = hist[i];
+            const x = timeToX(p.t);
+            if (x < 0) continue;
+            const r = Math.max(1.5, p.normVol * maxHalfThick);
+            if (!started) { ctx2d.moveTo(x, t1Mid - r); started = true; }
+            else ctx2d.lineTo(x, t1Mid - r);
+          }
+          ctx2d.stroke();
+        }
+
+        // --- TRACK 2: VIBRATO / PITCH WAVE ---
+        if (hist.length > 1) {
+          ctx2d.lineWidth = 2.4;
+          ctx2d.lineJoin = 'round';
+          ctx2d.lineCap = 'round';
+
+          for (let i = 1; i < hist.length; i++) {
+            const p0 = hist[i - 1];
+            const p1 = hist[i];
+            if (!p0.hasPitch || !p1.hasPitch) continue;
+            const x0 = timeToX(p0.t);
+            const x1 = timeToX(p1.t);
+            if (x1 < 0 || x0 > w) continue;
+
+            ctx2d.strokeStyle = p1.isDropout ? '#ef4444' : '#38bdf8';
+            ctx2d.beginPath();
+            ctx2d.moveTo(x0, centsToY(p0.pitchDevCents));
+            ctx2d.lineTo(x1, centsToY(p1.pitchDevCents));
+            ctx2d.stroke();
+          }
+        }
+
+        // --- GOLD VERTICAL BOW-CHANGE LINES & STATUS BADGES ---
+        for (let i = 0; i < state.bowEvents.length; i++) {
+          const ev = state.bowEvents[i];
+          const x = timeToX(ev.t);
+          if (x < -30 || x > w + 30) continue;
+
+          // Highlight evaluation window if failed
+          if (ev.status === 'dropout' || ev.status === 'vib_freeze') {
+            const winHalfPx = (250 / timeSpanMs) * usableW;
+            ctx2d.fillStyle = 'rgba(239, 68, 68, 0.13)';
+            ctx2d.fillRect(x - winHalfPx, 0, winHalfPx * 2, h);
+          }
+
+          // Vertical dashed gold line across BOTH tracks
+          ctx2d.save();
+          ctx2d.setLineDash([5, 4]);
+          ctx2d.strokeStyle = ev.status === 'dropout' ? '#ef4444' : '#e5a93c';
+          ctx2d.lineWidth = 1.6;
+          ctx2d.beginPath();
+          ctx2d.moveTo(x, 0);
+          ctx2d.lineTo(x, h);
+          ctx2d.stroke();
+          ctx2d.restore();
+
+          // Direction tag (Π or V)
+          ctx2d.font = '700 11px ui-monospace, monospace';
+          ctx2d.fillStyle = '#e5a93c';
+          ctx2d.textAlign = 'center';
+          ctx2d.fillText(ev.dir === 1 ? 'Π' : 'V', x, 14);
+
+          // Status badge
+          if (ev.status === 'smooth') {
+            drawCanvasBadge(x, track1H - 14, '✓ Mượt', '#14532d', '#4ade80');
+          } else if (ev.status === 'dropout') {
+            drawCanvasBadge(x, track1H - 14, '✕ Hụt tiếng!', '#7f1d1d', '#fca5a5');
+          } else if (ev.status === 'vib_freeze') {
+            drawCanvasBadge(x, track2Top + 18, '⚠ Đơ vibrato', '#78350f', '#fde047');
+          }
+        }
+
+        // Track Labels (top-left of each track)
+        ctx2d.textAlign = 'left';
+        ctx2d.font = '600 11px Inter, sans-serif';
+        ctx2d.fillStyle = 'rgba(229, 231, 235, 0.72)';
+        ctx2d.fillText('TRACK 1 · ĐỘ LIÊN TỤC ÂM THANH (ENVELOPE)', 10, 18);
+
+        const t2Label = lv.vibratoRequired
+          ? 'TRACK 2 · SÓNG VIBRATO (YÊU CẦU RUNG LIÊN TỤC QUA VẠCH VÀNG)'
+          : 'TRACK 2 · ĐỘ ỔN ĐỊNH CAO ĐỘ (±60 CENTS)';
+        ctx2d.fillStyle = 'rgba(56, 189, 248, 0.85)';
+        ctx2d.fillText(t2Label, 10, track2Top + 18);
+
+        // Idle prompt overlay if neither Mic nor Demo is running
+        if (!state.micActive && !state.demoActive && hist.length === 0) {
+          ctx2d.fillStyle = 'rgba(156, 163, 175, 0.75)';
+          ctx2d.font = '500 13px Inter, sans-serif';
+          ctx2d.textAlign = 'center';
+          ctx2d.fillText('Nhấn "Bắt đầu thu âm (Mic)" hoặc "Chạy mô phỏng mẫu" để xem sóng âm thời gian thực', w / 2, t1Mid + 4);
+        }
+      }
+
+      function drawCanvasBadge(cx, cy, text, bg, fg) {
+        ctx2d.font = '700 10.5px Inter, sans-serif';
+        const tw = ctx2d.measureText(text).width;
+        const padX = 7;
+        const bw = tw + padX * 2;
+        const bh = 18;
+        ctx2d.fillStyle = bg;
+        ctx2d.beginPath();
+        ctx2d.roundRect(cx - bw / 2, cy - bh / 2, bw, bh, 5);
+        ctx2d.fill();
+        ctx2d.fillStyle = fg;
+        ctx2d.textAlign = 'center';
+        ctx2d.textBaseline = 'middle';
+        ctx2d.fillText(text, cx, cy + 0.5);
+        ctx2d.textBaseline = 'alphabetic';
+      }
+
+      /* =========================================================
+         8. UI RENDERING & SYNC
+         ========================================================= */
+      function getBowZoneRange(zone) {
+        switch (zone) {
+          case 'Gốc vĩ': return { start: 0.04, end: 0.36 };
+          case 'Giữa vĩ': return { start: 0.33, end: 0.67 };
+          case 'Ngọn vĩ': return { start: 0.64, end: 0.96 };
+          case 'Toàn vĩ':
+          default: return { start: 0.04, end: 0.96 };
+        }
+      }
+
+      function updateBowGuideUI() {
+        const lv = getCurrentLevel();
+        const range = getBowZoneRange(lv.bowZone);
+
+        // Smooth ease near endpoints for natural violin bow physics
+        const p = state.bowPhase;
+        const posNorm = state.bowDirection === 1
+          ? range.start + (range.end - range.start) * p
+          : range.end - (range.end - range.start) * p;
+
+        el.bowCursor.style.left = `${(posNorm * 100).toFixed(2)}%`;
+        el.bowSymbol.textContent = state.bowDirection === 1 ? 'Π' : 'V';
+        el.bowDirLabel.textContent = state.bowDirection === 1
+          ? 'Kéo xuống (Down-bow)'
+          : 'Đẩy lên (Up-bow)';
+
+        if (state.micActive || state.demoActive || state.metroEnabled) {
+          if (p >= 0.82) {
+            el.bowWarningPill.textContent = '⚡ Chuẩn bị đổi vĩ...';
+            el.bowWarningPill.classList.add('warn');
+          } else {
+            el.bowWarningPill.textContent = lv.vibratoRequired ? 'Giữ đều lực & sóng Vibrato' : 'Giữ âm thanh liền mạch';
+            el.bowWarningPill.classList.remove('warn');
+          }
+        } else {
+          el.bowWarningPill.textContent = 'Sẵn sàng luyện tập';
+          el.bowWarningPill.classList.remove('warn');
+        }
+      }
+
+      function renderBeatDots() {
+        const lv = getCurrentLevel();
+        el.beatDots.innerHTML = '';
+        for (let i = 0; i < lv.beatsPerBow; i++) {
+          const d = document.createElement('span');
+          d.className = 'beat-dot' + (i === 0 ? ' beat-one' : '');
+          el.beatDots.appendChild(d);
+        }
+        updateBeatDotsUI();
+      }
+
+      function updateBeatDotsUI() {
+        const dots = el.beatDots.children;
+        for (let i = 0; i < dots.length; i++) {
+          dots[i].classList.toggle('active', i === state.currentBeat && (state.micActive || state.demoActive || state.metroEnabled));
+        }
+      }
+
+      function updateAudioSourceUI() {
+        if (state.micActive) {
+          el.micToggleBtn.classList.remove('btn-primary');
+          el.micToggleBtn.classList.add('btn-mic-active');
+          el.micBtnLabel.textContent = 'Dừng thu âm (Mic)';
+          el.audioSourceTag.textContent = '● MICRO ĐANG THU';
+          el.audioSourceTag.style.color = '#ef4444';
+        } else {
+          el.micToggleBtn.classList.add('btn-primary');
+          el.micToggleBtn.classList.remove('btn-mic-active');
+          el.micBtnLabel.textContent = 'Bắt đầu thu âm (Mic)';
+        }
+
+        if (state.demoActive) {
+          el.demoBtnLabel.textContent = 'Dừng mô phỏng';
+          el.audioSourceTag.textContent = '● ĐANG MÔ PHỎNG';
+          el.audioSourceTag.style.color = '#38bdf8';
+        } else {
+          el.demoBtnLabel.textContent = 'Chạy mô phỏng mẫu';
+          if (!state.micActive) {
+            el.audioSourceTag.textContent = 'ĐANG DỪNG';
+            el.audioSourceTag.style.color = 'var(--text-muted)';
+          }
+        }
+      }
+
+      function updateDroneUI() {
+        const lv = getCurrentLevel();
+        el.droneBtnLabel.textContent = `Drone (${lv.droneNote}): ${state.droneEnabled ? 'Bật' : 'Tắt'}`;
+        el.droneToggleBtn.classList.toggle('btn-green', state.droneEnabled);
+      }
+
+      function updateMetronomeUI() {
+        el.metroBtnLabel.textContent = `Metronome: ${state.metroEnabled ? 'Bật' : 'Tắt'}`;
+        el.metroToggleBtn.classList.toggle('btn-green', state.metroEnabled);
+      }
+
+      function updateMetricsUI() {
+        const lv = getCurrentLevel();
+        const score = getCurrentSmoothnessPct();
+
+        if (score === null) {
+          el.metricSmoothness.textContent = '--%';
+          el.metricSmoothness.style.color = 'var(--text-primary)';
+        } else {
+          el.metricSmoothness.textContent = `${score}%`;
+          el.metricSmoothness.style.color = score >= lv.passThreshold
+            ? 'var(--green)'
+            : (score >= lv.passThreshold - 15 ? 'var(--gold)' : 'var(--red)');
+        }
+        el.metricSmoothSub.textContent = `Mục tiêu đạt: ≥ ${lv.passThreshold}%`;
+
+        el.metricBowChanges.textContent = `${state.smoothBowChanges} / ${state.totalBowChanges}`;
+        el.metricBowSub.textContent = state.totalBowChanges < 4
+          ? `Cần ${4 - state.totalBowChanges} lần đổi vĩ nữa để chốt chu kỳ`
+          : 'Đã hoàn tất chu kỳ 4 lần đổi vĩ';
+
+        // Vibrato Card
+        if (!lv.vibratoRequired) {
+          el.metricVibrato.textContent = 'Chưa yêu cầu';
+          el.metricVibrato.style.color = 'var(--text-secondary)';
+          el.metricVibSub.textContent = 'Áp dụng từ Level 21 trở đi';
+        } else if (state.vibratoActive) {
+          el.metricVibrato.textContent = `${state.vibratoRateHz} Hz · ±${state.vibratoWidthCents}¢`;
+          el.metricVibrato.style.color = 'var(--cyan)';
+          el.metricVibSub.textContent = 'Sóng Vibrato đang rung đều!';
+        } else {
+          el.metricVibrato.textContent = 'Đang chờ rung...';
+          el.metricVibrato.style.color = 'var(--gold)';
+          el.metricVibSub.textContent = 'Mục tiêu: 4.5–6.5 Hz, ±15–30¢';
+        }
+
+        // Note & Tuner Card
+        el.metricNote.textContent = state.detectedNote;
+        el.metricCents.textContent = state.detectedNote === '--'
+          ? '0¢'
+          : `${state.detectedCents > 0 ? '+' : ''}${state.detectedCents}¢`;
+        const needlePct = 50 + Math.max(-48, Math.min(48, (state.detectedCents / 50) * 48));
+        el.tunerNeedle.style.left = `${needlePct}%`;
+        el.tunerNeedle.style.background = Math.abs(state.detectedCents) <= 10 ? 'var(--green)' : 'var(--cyan)';
+
+        // Live dB readout
+        el.liveDbReadout.textContent = (state.micActive || state.demoActive)
+          ? `Âm lượng: ${Math.max(-99, Math.round(state.currentDb))} dB (Gate: ${state.noiseGateDb} dB)`
+          : 'Âm lượng: -- dB';
+      }
+
+      function updateProgressHeader() {
+        const doneCount = LEVELS.filter(l => progressData[l.id] && progressData[l.id].completed).length;
+        el.progressText.textContent = `${doneCount} / 50 Level`;
+        el.progressFill.style.width = `${(doneCount / 50) * 100}%`;
+      }
+
+      function renderSidebarLevels() {
+        el.levelList.innerHTML = '';
+        let lastPhase = -1;
+
+        const filtered = state.phaseFilter === 0
+          ? LEVELS
+          : LEVELS.filter(l => l.phase === state.phaseFilter);
+
+        filtered.forEach(lv => {
+          if (lv.phase !== lastPhase) {
+            lastPhase = lv.phase;
+            const header = document.createElement('div');
+            header.className = 'phase-group-header';
+            header.textContent = PHASES[lv.phase];
+            el.levelList.appendChild(header);
+          }
+
+          const prog = progressData[lv.id];
+          const isCompleted = !!(prog && prog.completed);
+          const isActive = lv.id === state.currentLevelId;
+
+          const btn = document.createElement('button');
+          btn.className = `level-item${isActive ? ' active' : ''}${isCompleted ? ' completed' : ''}`;
+          btn.innerHTML = `
+            <span class="level-num">${isCompleted ? '✓' : lv.id}</span>
+            <span class="level-info">
+              <div class="level-title">Lv ${lv.id}: ${lv.title}</div>
+              <div class="level-meta">
+                <span>${lv.bowZone}</span>
+                <span>· ${lv.bpm} BPM</span>
+                ${lv.vibratoRequired ? '<span class="tag-vib">Vibrato</span>' : ''}
+              </div>
+            </span>
+            ${prog && prog.bestScore ? `<span class="level-score-badge">${prog.bestScore}%</span>` : ''}
+          `;
+          btn.addEventListener('click', () => {
+            selectLevel(lv.id);
+            closeMobileDrawer();
+          });
+          el.levelList.appendChild(btn);
+        });
+      }
+
+      function selectLevel(id) {
+        const lv = LEVELS.find(l => l.id === id);
+        if (!lv) return;
+
+        state.currentLevelId = lv.id;
+        state.bpm = lv.bpm;
+        el.bpmSlider.value = lv.bpm;
+        el.bpmVal.textContent = `${lv.bpm} BPM`;
+
+        // Update Header & Specs
+        el.activePhaseBadge.textContent = `Level ${lv.id} / 50 · Giai đoạn ${lv.phase}`;
+        el.activeLevelTitle.textContent = lv.title;
+        el.coachingTip.textContent = lv.tip;
+        el.bowZoneSub.textContent = `Vùng vĩ mục tiêu: ${lv.bowZone} · ${lv.beatsPerBow} phách / 1 vĩ`;
+
+        el.activeLevelSpecs.innerHTML = `
+          <span class="spec-chip">Vùng vĩ: <strong>${lv.bowZone}</strong></span>
+          <span class="spec-chip">Nốt / Dây: <strong>${lv.targetNote}</strong></span>
+          <span class="spec-chip">Nhịp: <strong>${lv.beatsPerBow} phách/vĩ · ${lv.bpm} BPM</strong></span>
+          <span class="spec-chip ${lv.vibratoRequired ? 'vib-on' : ''}">Vibrato: <strong>${lv.vibratoRequired ? 'Bắt buộc liên tục' : 'Chưa yêu cầu'}</strong></span>
+          <span class="spec-chip">Đạt chuẩn: <strong>≥ ${lv.passThreshold}%</strong></span>
+        `;
+
+        // Update Bow Active Zone Highlight
+        const r = getBowZoneRange(lv.bowZone);
+        el.bowActiveZone.style.left = `${(r.start * 100).toFixed(1)}%`;
+        el.bowActiveZone.style.width = `${((r.end - r.start) * 100).toFixed(1)}%`;
+
+        el.prevLevelBtn.disabled = lv.id <= 1;
+        el.nextLevelBtn.disabled = lv.id >= 50;
+
+        resetSessionMetrics();
+        renderBeatDots();
+        updateBowGuideUI();
+        updateDroneUI();
+        renderSidebarLevels();
+
+        // Retune active Drone or Demo smoothly if running
+        if (state.droneEnabled) startDrone();
+        if (state.demoActive) startDemo();
+      }
+
+      /* =========================================================
+         9. MOBILE DRAWER & EVENT LISTENERS
+         ========================================================= */
+      function openMobileDrawer() {
+        el.sidebar.classList.add('open');
+        el.drawerBackdrop.classList.add('show');
+      }
+      function closeMobileDrawer() {
+        el.sidebar.classList.remove('open');
+        el.drawerBackdrop.classList.remove('show');
+      }
+
+      el.openDrawerBtn.addEventListener('click', openMobileDrawer);
+      el.closeDrawerBtn.addEventListener('click', closeMobileDrawer);
+      el.drawerBackdrop.addEventListener('click', closeMobileDrawer);
+      el.statusBannerClose.addEventListener('click', hideBanner);
+
+      el.phaseFilters.addEventListener('click', (e) => {
+        const pill = e.target.closest('.phase-pill');
+        if (!pill) return;
+        state.phaseFilter = Number(pill.dataset.phase);
+        el.phaseFilters.querySelectorAll('.phase-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        renderSidebarLevels();
+      });
+
+      el.prevLevelBtn.addEventListener('click', () => {
+        if (state.currentLevelId > 1) selectLevel(state.currentLevelId - 1);
+      });
+      el.nextLevelBtn.addEventListener('click', () => {
+        if (state.currentLevelId < 50) selectLevel(state.currentLevelId + 1);
+      });
+
+      el.micToggleBtn.addEventListener('click', () => {
+        if (state.micActive) stopMic();
+        else startMic();
+      });
+
+      el.demoToggleBtn.addEventListener('click', () => {
+        if (state.demoActive) stopDemo();
+        else startDemo();
+      });
+
+      el.demoModeSelect.addEventListener('change', (e) => {
+        state.demoMode = e.target.value;
+        if (state.demoActive) {
+          const msg = state.demoMode === 'smooth'
+            ? 'Đã chuyển sang Mẫu mượt (Chuẩn).'
+            : 'Đã chuyển sang Mẫu bị mất tiếng (Lỗi thường gặp).';
+          showBanner(msg, 'info', 3500);
+        }
+      });
+
+      el.gateSlider.addEventListener('input', (e) => {
+        state.noiseGateDb = Number(e.target.value);
+        el.gateVal.textContent = `${state.noiseGateDb} dB`;
+      });
+
+      el.metroToggleBtn.addEventListener('click', async () => {
+        await ensureAudioContext();
+        state.metroEnabled = !state.metroEnabled;
+        updateMetronomeUI();
+      });
+
+      el.droneToggleBtn.addEventListener('click', () => {
+        if (state.droneEnabled) stopDrone();
+        else startDrone();
+      });
+
+      el.bpmSlider.addEventListener('input', (e) => {
+        state.bpm = Number(e.target.value);
+        el.bpmVal.textContent = `${state.bpm} BPM`;
+      });
+
+      el.resetBpmBtn.addEventListener('click', () => {
+        const lv = getCurrentLevel();
+        state.bpm = lv.bpm;
+        el.bpmSlider.value = lv.bpm;
+        el.bpmVal.textContent = `${lv.bpm} BPM`;
+      });
+
+      el.droneVolSlider.addEventListener('input', (e) => {
+        const pct = Number(e.target.value);
+        state.droneVolume = pct / 100;
+        el.droneVolVal.textContent = `${pct}%`;
+        if (droneMasterGain && audioCtx) {
+          droneMasterGain.gain.setTargetAtTime(state.droneVolume * 0.16, audioCtx.currentTime, 0.05);
+        }
+      });
+
+      el.resetSessionBtn.addEventListener('click', () => {
+        resetSessionMetrics();
+        showBanner('Đã làm mới lượt tập hiện tại.', 'info', 2500);
+      });
+
+      el.completeLevelBtn.addEventListener('click', () => {
+        const lv = getCurrentLevel();
+        const liveScore = getCurrentSmoothnessPct();
+        const finalScore = liveScore !== null ? liveScore : lv.passThreshold;
+        markLevelCompleted(lv.id, finalScore);
+        showBanner(`Đã lưu kết quả Level ${lv.id} (${finalScore}%). Tiếp tục giữ phong độ nhé!`, 'success', 4500);
+      });
+
+      /* =========================================================
+         10. MAIN 60FPS ANIMATION LOOP & INIT
+         ========================================================= */
+      let lastUiUpdateMs = 0;
+
+      function mainLoop(timestamp) {
+        if (!state.lastFrameTime) state.lastFrameTime = timestamp;
+        const dtSec = Math.min(0.1, (timestamp - state.lastFrameTime) / 1000);
+        state.lastFrameTime = timestamp;
+
+        processAudioAndTiming(timestamp, dtSec);
+        drawVisualizer(timestamp);
+
+        // Throttle DOM text updates to ~15fps for buttery smoothness
+        if (timestamp - lastUiUpdateMs > 66) {
+          lastUiUpdateMs = timestamp;
+          updateMetricsUI();
+        }
+
+        requestAnimationFrame(mainLoop);
+      }
+
+      window.addEventListener('resize', resizeCanvas);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(resizeCanvas).observe(el.canvasContainer);
+      }
+
+      window.onload = function () {
+        resizeCanvas();
+        updateProgressHeader();
+        selectLevel(1);
+        updateMetronomeUI();
+        updateAudioSourceUI();
+        requestAnimationFrame(mainLoop);
+      };
+    })();
+  </script>
+</body>
+</html>

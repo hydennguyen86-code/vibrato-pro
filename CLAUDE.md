@@ -52,6 +52,18 @@ node -e "import('./cloudflare/vibrato/_worker.js').then(m=>console.log(Object.ke
 - Mở thử: thêm `?demo=1` vào URL để dùng tín hiệu và bàn tay giả lập.
 - Thử Worker trên máy: `npx wrangler pages dev cloudflare/vibrato --port 8991 --binding ANTHROPIC_API_KEY=… --binding COACH_PASSCODE=… --binding ANTHROPIC_BASE_URL=http://127.0.0.1:<fake>`
 
+## Phần Độ mượt (legato)
+- Phần thứ hai của app: 50 level (M1–M50, 6 vòng) tập đổi vĩ liền tiếng, đổi nốt legato và **chuyển dây mượt** (trọng tâm, kể cả khi đang vibrato). Hợp đồng đầy đủ: `docs/SPEC-LEGATO.md`.
+- File: `src/legato-engine.js` (`VE.legato`: ngưỡng, kế hoạch lượt tập, bộ chấm, tiến độ, phiên tập, HLV AI), `src/legato-levels.js` (khung 50 level), `src/legato-content.js` (chữ hướng dẫn), `src/legato-videos.js` (video tham khảo), `src/legato-list.js/.css` (tab, thẻ ở Lộ trình, danh sách, chi tiết level), `src/legato-take.js/.css` (màn Lượt tập và Phiếu chấm).
+- Route mới: `#/legato`, `#/lg-level/:id`, `#/lg-take/:id` (không cuộn, ẩn thanh tab), `#/lg-result/:id`. Tab "Độ mượt" nằm sau tab "Đo", nên thanh tab có 5 mục.
+- Tiến độ lưu khoá riêng `vibratoPro.legato.v1`, dùng chung `passMode` với phần vibrato. Qua M-N thì mọi M trước N tính là đã qua; không cascade sang 100 level vibrato và ngược lại. "Đặt lại tiến độ" xoá cả hai.
+- Ngưỡng nằm ở `VE.legato.TH` và `VE.legato.TIERS` (đầu `legato-engine.js`) và **CHƯA kiểm trên đàn thật**. Phiếu chấm có "Số đo thô" để chép gửi lại chỉnh ngưỡng.
+- Micro không đo được vùng vĩ (tự kiểm) và đổi vĩ càng mượt càng khó nghe ra; app chỉ đo chỗ sụt tiếng quanh phách. Đừng viết chữ hứa app kiểm những thứ đó.
+- Thử không cần đàn: `?demo=1&pattern=<smooth|bowgap|crossgap|crossnoise|wrongnote|vibfreeze|uneven|late|silent>&speed=<1..16>#/lg-take/9`.
+- Điểm mở rộng của `ui.js`: file màn hình nạp trước `ui.js` và đăng ký qua `window.VP_EXT` (`registerRoute`, `registerTab`, `registerHomeCard`), tiện ích dùng chung ở `window.VP_UI`. Class mới có tiền tố `lgl-` (list), `lgt-` (take).
+- Test mới: `tests/legato-engine.test.mjs`, `tests/legato-store.test.mjs`, `tests/legato-levels.test.mjs` (`--quick` chạy vài giây, đầy đủ khoảng 1 phút), `tests/hold.test.mjs`.
+- Luật đổi cung mới của phần vibrato (SPEC.md §13, `VE._core.HOLD`): kiểm bằng `tests/hold.test.mjs`.
+
 ## Cách đưa bản mới lên
 1. Dashboard tài khoản 86 → Workers & Pages → vibrato → **Create deployment** → Production.
 2. Tải lên `vibrato-pages-upload.zip` (khoảng 8,5 MB; Chrome extension giới hạn 10 MB).

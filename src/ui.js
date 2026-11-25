@@ -60,6 +60,10 @@ const WL = { s: null, want: false,
   release() { this.want = false; try { if (this.s) this.s.release(); } catch (e) {} this.s = null; } };
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && WL.want) WL.acquire(); });
 
+/* ---------- điểm mở rộng: xem docs/SPEC-LEGATO.md §9 ---------- */
+// File màn hình mới KHÔNG sửa ui.js: nạp trước ui.js và đẩy hàm vào window.VP_EXT; ui.js gọi hàm đó với VP_UI ngay trước lần route đầu.
+const EXT = { routes: {}, tabs: [], home: [] };
+
 /* ---------- state ---------- */
 let cleanup = null;
 let lastResult = null;       // { levelId, pass, metrics, durationSec, gate, self }
@@ -77,6 +81,8 @@ function curLevelId() { return safe(() => VE.store.currentLevel(), 1) || 1; }
 function renderTabs(active) {
   const tabs = [['home', '#/home', 'Lộ trình', I.home], ['measure', '#/measure/' + curLevelId(), 'Đo', I.mic],
     ['progress', '#/progress', 'Tiến độ', I.chart], ['settings', '#/settings', 'Cài đặt', I.gear]];
+  // tab do phần mở rộng đăng ký (VP_UI.registerTab) — chèn theo order (0 = đầu, 2 = sau "Đo")
+  EXT.tabs.slice().sort((a, b) => b.order - a.order).forEach(t => tabs.splice(clamp(t.order, 0, tabs.length), 0, [t.id, t.href, t.label, t.icon || I.mic]));
   tabbar.innerHTML = tabs.map(t => `<a href="${t[1]}" class="${active === t[0] ? 'on' : ''}" ${active === t[0] ? 'aria-current="page"' : ''}>${t[3]}<span>${t[2]}</span></a>`).join('');
 }
 
@@ -88,10 +94,10 @@ function route() {
   const name = parts[0] || 'home', arg = parts[1];
   const map = { home: [screenHome, 'home'], level: [screenLevel, 'home'], measure: [screenMeasure, 'measure'],
     result: [screenResult, 'measure'], progress: [screenProgress, 'progress'], calibrate: [screenCalibrate, 'settings'], settings: [screenSettings, 'settings'] };
-  const entry = map[name] || map.home;
+  const entry = map[name] || EXT.routes[name] || map.home; // route lõi luôn thắng route mở rộng trùng tên
   renderTabs(entry[1]);
   view.scrollTop = 0;
-  const fit = name === 'measure';
+  const fit = name === 'measure' || entry[2] === true;
   view.classList.toggle('fit', fit); tabbar.hidden = fit; $('#app').classList.toggle('notab', fit);
   try { cleanup = entry[0](arg) || null; }
   catch (e) { console.error(e); view.innerHTML = `<div class="card err"><b>Có lỗi hiển thị</b>${esc(e.message)}<p style="margin-top:8px"><a class="btn btn-ghost btn-sm" href="#/home">Về Lộ trình</a></p></div>`; }
@@ -171,6 +177,7 @@ function screenHome() {
       <a class="btn btn-gold" href="#/measure/${lv.id}">${I.play}Bắt đầu</a>
       <p style="margin-top:10px"><a class="gold" href="#/level/${lv.id}" style="font-weight:700;font-size:15px;display:inline-block;padding:8px">Xem hướng dẫn level ›</a></p>
     </div>
+    ${EXT.home.map(fn => safe(() => fn(), '') || '').join('')}
     <h2 class="sec-title">Lộ trình 8 vòng</h2>
     ${stageHTML}`;
   $$('.stage-h', view).forEach(b => b.addEventListener('click', () => {
@@ -500,7 +507,7 @@ function measureMic(lv) {
     $('#holdTxt').textContent = `${f1(held)} / ${f1(need)} s`;
     $('#holdBar').style.width = clamp(held / need * 100, 0, 100) + '%';
     const R = { NO_SIGNAL: 'Chưa nghe thấy tiếng', TOO_SHORT: 'Đang thu thập…', NO_CYCLES: 'Chưa thấy chu kỳ rung' };
-    $('#reason').textContent = m.valid ? (m.allOk ? '✓ Đang đạt — giữ tiếp!' : 'Giữ đạt liên tục') : (R[m.reason] || 'Giữ đạt liên tục');
+    $('#reason').textContent = m.holdPaused ? 'Đổi cung: đồng hồ tạm dừng, rung lại ngay' : m.valid ? (m.allOk ? '✓ Đang đạt — giữ tiếp!' : 'Giữ đạt liên tục') : (R[m.reason] || 'Giữ đạt liên tục');
   }
   function leaveToResult(r) {
     if (leaving) return; leaving = true; WL.release();
@@ -839,7 +846,7 @@ function screenSettings() {
   }));
   $('#sen').addEventListener('input', e => { $('#senV').textContent = e.target.value + '%'; safe(() => VE.settings.set({ sensitivity: Number(e.target.value) / 100 })); });
   $('#reset').addEventListener('click', () => {
-    if (confirm('Xoá toàn bộ tiến độ luyện tập? Việc này không hoàn tác được.')) { safe(() => VE.store.reset()); location.hash = '#/home'; route(); }
+    if (confirm('Xoá toàn bộ tiến độ luyện tập? Việc này không hoàn tác được.')) { safe(() => VE.store.reset()); safe(() => VE.legato && VE.legato.store.reset()); location.hash = '#/home'; route(); }
   });
   let gone = false;
   serverHealth().then(async h => {
@@ -896,6 +903,22 @@ function screenSettings() {
   });
   return () => { gone = true; };
 }
+
+/* ---------- điểm mở rộng: API cho các file màn hình khác (docs/SPEC-LEGATO.md §9) ---------- */
+const UI = window.VP_UI = {
+  VE, DEMO, view, I, WL, $, $$, esc, f0, f1, clamp, safe, toast,
+  topbar, stHTML, micErrorHTML, dateLabel, fmtTime, serverHealth, coachActive, coachRun, COACH_ERR,
+  // fn(arg) vẽ vào VP_UI.view, có thể trả hàm dọn dẹp. opts: { tab: id tab được tô sáng, fit: true = màn hình không cuộn, ẩn thanh tab }
+  registerRoute(name, fn, opts) { if (typeof fn === 'function' && /^[a-z][a-z0-9-]*$/.test(name)) EXT.routes[name] = [fn, (opts && opts.tab) || 'home', !!(opts && opts.fit)]; },
+  // t: { id, href, label, icon (chuỗi SVG), order }
+  registerTab(t) { if (t && t.id && t.href && !EXT.tabs.some(x => x.id === t.id)) EXT.tabs.push({ id: t.id, href: t.href, label: t.label || t.id, icon: t.icon, order: t.order == null ? 2 : t.order }); },
+  // fn() → chuỗi HTML, chèn vào trang Lộ trình ngay trên "Lộ trình 8 vòng"
+  registerHomeCard(fn) { if (typeof fn === 'function') EXT.home.push(fn); },
+  go(hash) { location.hash = hash; },
+  rerender: route,
+};
+(window.VP_EXT || []).forEach(fn => { try { fn(UI); } catch (e) { console.error('VP_EXT', e); } });
+window.VP_EXT = { push(fn) { try { fn(UI); } catch (e) { console.error('VP_EXT', e); } } }; // file nạp sau ui.js vẫn đăng ký được
 
 /* ---------- boot ---------- */
 $('#bg').innerHTML = violinBG;

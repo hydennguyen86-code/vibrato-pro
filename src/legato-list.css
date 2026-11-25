@@ -1,0 +1,42 @@
+/* Phần Độ mượt: màn Danh sách và Chi tiết level [gói list]. Tiền tố lgl- */
+.lgl-h2 { font-size: 20px; font-weight: 800; color: var(--gold-text); margin-bottom: 2px; }
+.lgl-home .bar { margin: 12px 0 8px; }
+.lgl-head .lvl-big { font-size: 28px; }
+.lgl-focus { display: inline-block; font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 999px; background: linear-gradient(180deg, #ffc552, #f08a00); color: #2a1500; vertical-align: 2px; margin-left: 4px; }
+.lgl-list { display: none; padding: 2px 2px 8px; }
+.stage.open .lgl-list { display: block; }
+.lgl-row { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 8px; border-radius: 14px; border: 1px solid transparent; }
+.lgl-row + .lgl-row { margin-top: 4px; }
+.lgl-row.passed { background: var(--ok-bg); }
+.lgl-row.current { background: rgba(255,190,60,.16); border-color: var(--gold); }
+.lgl-row:not(.passed):not(.current) { background: var(--card); border-color: var(--line); }
+.lgl-id { flex: none; width: 44px; font-size: 16px; font-weight: 800; color: var(--gold-text); }
+.lgl-rt { flex: 1; min-width: 0; }
+.lgl-title { display: block; font-size: 15px; font-weight: 600; line-height: 1.25; }
+.lgl-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.lgl-kind { font-weight: 700; }
+.lgl-stt { flex: none; }
+.lgl-now { font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 999px; background: linear-gradient(180deg, #ffc552, #f08a00); color: #2a1500; }
+.lgl-why { display: block; color: var(--bad); font-weight: 600; }
+.lgl-feel { border-color: var(--ok); background: var(--ok-bg); }
+.lgl-feel b { display: block; color: var(--ok); margin-bottom: 4px; font-size: 17px; }
+.lgl-feel p { font-size: 16px; }
+
+/* bài tập: dãy ô nốt */
+.lgl-pat { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 0; max-width: 100%; overflow-x: auto; padding-bottom: 4px; }
+.lgl-slur { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.lgl-arc { height: 12px; border: 2px solid var(--gold-text); border-bottom: 0; border-radius: 14px 14px 0 0; margin: 0 4px; opacity: .8; }
+.lgl-cells { display: flex; gap: 4px; padding: 0 2px; }
+.lgl-cell { min-width: 0; text-align: center; padding: 6px 2px; border-radius: 10px; background: var(--card2); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 1px; justify-content: center; }
+.lgl-cell b { font-size: 18px; font-weight: 800; line-height: 1.1; }
+.lgl-cell span { font-size: 11px; font-weight: 600; color: var(--muted); line-height: 1.2; }
+.lgl-cell em { font-style: normal; font-size: 11px; color: var(--faint); }
+.lgl-sym { align-self: center; flex: none; font-size: 15px; font-weight: 800; color: var(--blue); padding: 0 2px; margin-top: 12px; }
+.lgl-sym.note { color: var(--gold-text); }
+.lgl-bowmark { align-self: stretch; flex: none; display: flex; align-items: center; padding: 12px 4px 0; }
+.lgl-bowmark i { width: 3px; height: 100%; min-height: 40px; border-radius: 2px; background: var(--text); opacity: .75; }
+.lgl-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.lgl-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lgl-lg.arc { width: 20px; height: 8px; border: 2px solid var(--gold-text); border-bottom: 0; border-radius: 8px 8px 0 0; display: inline-block; }
+.lgl-lg.bow { width: 3px; height: 16px; border-radius: 2px; background: var(--text); opacity: .75; display: inline-block; }
+.lgl-lgs { font-size: 15px; color: var(--blue); }

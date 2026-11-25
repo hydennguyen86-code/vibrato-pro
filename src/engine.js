@@ -267,7 +267,70 @@
     return { checks, allOk, nOk };
   }
 
-  const core = { yin, rmsDb, analyzeTrack, evaluate, hzToAbsCents, absCentsToHz, midiName, median, mean, std };
+  // ───────────────────────── Đồng hồ "giữ đạt" (SPEC §13) ─────────────────────────
+  // Đổi cung thường để hở tiếng một thoáng. Hở ngắn thì đồng hồ TẠM DỪNG chứ không về 0, rồi cho một khoảng để bắt lại vibrato.
+  // Chống lỗ hổng: thời gian hở và thời gian bắt lại KHÔNG cộng vào held; mỗi lượt giữ chỉ được ân hạn maxGraces lần.
+  const HOLD = {
+    minGapSec: 0.1,     // lặng ngắn hơn mức này không coi là khoảng hở (analyzeTrack tự nối ≤ 0,12 s)
+    gapMaxSec: 0.3,     // hở dài hơn mức này → về 0 như cũ
+    recoverSec: 1.5,    // sau khoảng hở, có bấy nhiêu giây để các chỉ số đạt lại
+    recoverCycles: 4,   // vibrato chậm: cho ít nhất 4 chu kỳ ở tốc độ thấp nhất của level
+    maxGraces: 2,       // số khoảng hở được tha trong một lượt giữ
+    noteChangeSec: 0.6, // luật cũ: TOO_SHORT khi đổi nốt (không hở tiếng) được chờ tối đa 0,6 s
+  };
+  // Khoảng lặng gần nhất trong track (dài ≥ minLen, có tiếng ở phía trước). Trả {start, end, len, ongoing} hoặc null.
+  function lastGap(track, minLen) {
+    let i = track.length - 1;
+    if (i < 0) return null;
+    const tEnd = track[i].t;
+    while (i >= 0 && track[i].t >= tEnd - 3) {
+      if (track[i].c != null) { i--; continue; }
+      let j = i;
+      while (j >= 0 && track[j].c == null) j--;
+      if (j < 0) return null; // lặng từ đầu: chưa bắt đầu kéo
+      const ongoing = i === track.length - 1;
+      const end = ongoing ? tEnd : track[i + 1].t, start = track[j].t;
+      if (end - start >= minLen) return { start, end, len: end - start, ongoing };
+      i = j;
+    }
+    return null;
+  }
+  // makeHold(opts) → { update(t, dt, coreM, allOk, track) → held, held, paused, graces }
+  function makeHold(opts) {
+    const H = Object.assign({}, HOLD, opts || {});
+    const recover = Math.max(H.recoverSec, H.rateLo > 0 ? H.recoverCycles / H.rateLo : 0);
+    let held = 0, invalidRun = 0, grace = null, used = 0, lastOkT = -1e9;
+    const reset = () => { held = 0; invalidRun = 0; grace = null; used = 0; };
+    return {
+      get held() { return held; }, get paused() { return !!grace; }, get graces() { return used; },
+      update(t, dt, m, allOk, track) {
+        const g = lastGap(track, H.minGapSec);
+        const fresh = !!g && (g.ongoing ? t : g.end) > lastOkT + 1e-6; // khoảng hở xảy ra sau lần đạt gần nhất
+        if (fresh && g.len > H.gapMaxSec) { reset(); return held; }      // hở dài: về 0 (kể cả khi đang ân hạn)
+        if (allOk) { held += dt; invalidRun = 0; grace = null; lastOkT = t; return held; }
+        if (held <= 0) { reset(); return held; }
+        if (grace) {
+          if (fresh && g.start > grace.gapStart + 0.01) { // lại hở lần nữa trong lúc đang bắt lại
+            if (++used > H.maxGraces) { reset(); return held; }
+            grace.gapStart = g.start; grace.left = recover;
+          }
+          if (!(g && g.ongoing)) grace.left -= dt;         // chỉ đếm khi đã có tiếng lại
+          if (grace.left < -1e-9) reset();
+          return held;
+        }
+        if (fresh) { // hở ngắn: tạm dừng đồng hồ, bắt đầu ân hạn
+          if (used >= H.maxGraces) { reset(); return held; }
+          used++; grace = { gapStart: g.start, left: recover };
+          if (!g.ongoing) grace.left -= dt;
+          return held;
+        }
+        if (!m.valid && m.reason === 'TOO_SHORT' && invalidRun + dt <= H.noteChangeSec) { invalidRun += dt; return held; } // đổi nốt, không hở
+        reset(); return held;
+      },
+    };
+  }
+
+  const core = { yin, rmsDb, analyzeTrack, evaluate, hzToAbsCents, absCentsToHz, midiName, median, mean, std, HOLD, lastGap, makeHold };
 
   // Không có trình duyệt (Node test): chỉ xuất phần lõi
   const hasDOM = typeof root.document !== 'undefined' || typeof root.AudioContext !== 'undefined';
@@ -531,7 +594,7 @@
   };
 
   if (!hasDOM) {
-    root.VE = { PASS_MODES, _core: core, settings, store, server, coach };
+    root.VE = { PASS_MODES, _core: core, settings, store, server, coach, _dayKey: dayKey };
     return;
   }
 
@@ -605,12 +668,13 @@
   // ───────────────────────── Metronome ─────────────────────────
   let noiseBuf = null, metroTap = null;
   const metronome = {
-    running: false, bpm: 60, _timer: null, _next: 0, _beat: 0, _cb: null, _timeouts: [],
+    running: false, bpm: 60, muted: false, accentEvery: 4, _t0: 0, _timer: null, _next: 0, _beat: 0, _cb: null, _timeouts: [],
     start(bpm, onBeat) {
       this.stop();
       const ac = audio();
       this.bpm = clamp(bpm || 60, 30, 240); this._cb = onBeat || null; this._beat = 0;
       this._next = ac.currentTime + 0.08; this.running = true;
+      this._t0 = this._next; // thời điểm (AudioContext) của phách 0 — phần Độ mượt dùng để dựng lưới phách
       // Tiếng tích là nhiễu lọc dải ngắn (không có cao độ) để micro không nhận nhầm thành nốt nhạc
       if (!noiseBuf || noiseBuf.sampleRate !== ac.sampleRate) {
         noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.015), ac.sampleRate);
@@ -619,13 +683,15 @@
       }
       const tick = () => {
         while (this._next < ac.currentTime + 0.12) {
-          const t = this._next, accent = this._beat % 4 === 0, beat = this._beat;
-          const src = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain();
-          src.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = accent ? 3800 : 2600; bp.Q.value = 0.9;
-          g.gain.value = accent ? 1.6 : 1.0;
-          src.connect(bp); bp.connect(g); g.connect(ac.destination);
-          if (metroTap) g.connect(metroTap); // chế độ demo: giả lập micro thu cả tiếng metronome
-          src.start(t);
+          const t = this._next, accent = this._beat % (this.accentEvery || 4) === 0, beat = this._beat;
+          if (!this.muted) { // muted: vẫn giữ lưới phách và onBeat, chỉ không phát tiếng (Độ mượt: metronome chỉ nháy)
+            const src = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain();
+            src.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = accent ? 3800 : 2600; bp.Q.value = 0.9;
+            g.gain.value = accent ? 1.6 : 1.0;
+            src.connect(bp); bp.connect(g); g.connect(ac.destination);
+            if (metroTap) g.connect(metroTap); // chế độ demo: giả lập micro thu cả tiếng metronome
+            src.start(t);
+          }
           if (this._cb) {
             const delay = Math.max(0, (t - ac.currentTime) * 1000);
             const id = setTimeout(() => { if (this.running && this._cb) this._cb(beat); }, delay);
@@ -659,6 +725,10 @@
       const vib = attachVibrato(ac, v.osc, d.rate, d.width, t0 + 0.2, { fadeIn: 0.6, wobble: true });
       v.gain.gain.setValueAtTime(0, t0);
       v.gain.gain.setValueAtTime(0.25, t0 + (d.delay || 0));
+      // Chỉ ở chế độ demo: ?demo=1&gap=1 (hoặc gap=<giây>) tạo chỗ hở tiếng mỗi 4 giây, giả lập đổi cung, để thử luật giữ đạt (SPEC §13)
+      let gap = 0;
+      try { const m = /[?&]gap=([\d.]+)/.exec(root.location.search); if (m) gap = +m[1] === 1 ? 0.2 : clamp(+m[1] || 0, 0, 2); } catch (e) { /* không có location */ }
+      if (gap > 0 && !d.delay) for (let k = 1; k <= 30; k++) { v.gain.gain.setValueAtTime(0, t0 + 4 * k); v.gain.gain.setValueAtTime(0.25, t0 + 4 * k + gap); }
       v.osc.start(t0);
       // im lặng ra loa để không cần nghe; vẫn phải nối tới destination cho một số trình duyệt chạy đồ thị
       const mute = ac.createGain(); mute.gain.value = 0; analyser.connect(mute); mute.connect(ac.destination);
@@ -713,7 +783,8 @@
     const noteJump = Math.max(90, ((crit.width && crit.width[1]) || 60) + 30);
     const L = { frame: new Set(), metrics: new Set(), done: new Set() };
     const emit = (k, v) => L[k].forEach((cb) => { try { cb(v); } catch (e) { console.error(e); } });
-    let input = null, timer = null, startT = 0, track = [], lastMetricsT = 0, held = 0, invalidRun = 0;
+    let input = null, timer = null, startT = 0, track = [], lastMetricsT = 0, held = 0;
+    let hold = makeHold({ rateLo: crit.rate && crit.rate[0] });
     let refMidi = null, best = null, finished = false, running = false;
     const tracker = makeFrameTracker();
     const st = settings.get();
@@ -756,14 +827,12 @@
         const coreM = analyzeTrack(track, { windowSec, noteJump });
         if (coreM.valid) refMidi = coreM.refMidi;
         const ev = evaluate(coreM, crit);
-        if (ev.allOk) { held += dt; invalidRun = 0; }
-        else if (!coreM.valid && coreM.reason === 'TOO_SHORT' && held > 0 && invalidRun + dt <= 0.6) { invalidRun += dt; } // ân hạn khi đổi nốt
-        else { held = 0; invalidRun = 0; }
+        held = hold.update(t, dt, coreM, ev.allOk, track); // hở ngắn lúc đổi cung: tạm dừng, không về 0 (SPEC §13)
         const m = {
           valid: coreM.valid, reason: coreM.reason, rate: coreM.rate, regularity: coreM.regularity, width: coreM.width,
           peakOffset: coreM.peakOffset, center: coreM.valid ? coreM.center : null,
           centerLabel: coreM.valid ? CENTER_LABEL[coreM.center] : '—',
-          checks: ev.checks, allOk: ev.allOk, heldSec: Math.min(held, holdNeeded), holdNeeded,
+          checks: ev.checks, allOk: ev.allOk, heldSec: Math.min(held, holdNeeded), holdNeeded, holdPaused: hold.paused,
         };
         if (coreM.valid && (!best || ev.nOk > best._n || (ev.nOk === best._n && ev.allOk))) best = Object.assign({ _n: ev.nOk }, m);
         emit('metrics', m);
@@ -801,6 +870,7 @@
         if (running) return;
         input = await openInput({ demo, demoParams: level && level.demo });
         startT = ctx.currentTime; track = []; held = 0; lastMetricsT = 0; best = null; finished = false; refMidi = null;
+        hold = makeHold({ rateLo: crit.rate && crit.rate[0] });
         running = true;
         timer = setInterval(step, 12);
       },
@@ -872,5 +942,7 @@
     });
   }
 
-  root.VE = Object.assign(root.VE || {}, { PASS_MODES, _core: core, settings, store, server, coach, createSession, metronome, playSample, stopSample, calibrate });
+  // _audio: cửa nội bộ cho các phần khác của app (src/legato-engine.js) dùng chung AudioContext, micro và tiếng dây tổng hợp.
+  const _audio = { ctx: audio, openInput, voicingThreshold, stringVoice, isDemoURL };
+  root.VE = Object.assign(root.VE || {}, { PASS_MODES, _core: core, _audio, _dayKey: dayKey, settings, store, server, coach, createSession, metronome, playSample, stopSample, calibrate });
 })(typeof window !== 'undefined' ? window : globalThis);

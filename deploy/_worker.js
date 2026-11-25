@@ -28,6 +28,63 @@ Kiến thức nền:
 - Điều kiện qua level do học viên tự chọn (xem dòng TIẾN ĐỘ QUA LEVEL). Qua một level thì mọi level trước đó cũng tính là đã qua; có thể nhảy thẳng tới level khó hơn nếu đã vững.
 - Số liệu camera tay (nếu có) chỉ là thử nghiệm để tham khảo, đừng kết luận chắc chắn từ nó.`;
 
+// Phần "Độ mượt" (kind 'legato'): legato, đổi vĩ, chuyển dây. Level gọi là M1…M50.
+const SYSTEM_PROMPT_LEGATO = `Bạn là giáo viên violin chuyên dạy legato, đổi vĩ và chuyển dây cho người lớn tự học. Nói tiếng Việt tự nhiên, ngắn, thẳng thắn, ấm áp nhưng không khen sáo rỗng.
+
+Quy tắc bắt buộc:
+- Chỉ dựa vào SỐ LIỆU được cung cấp. Không bịa con số, không nói về điều không có trong số liệu.
+- Tối đa 110 chữ. Văn bản thuần: không markdown, không dấu *, không gạch đầu dòng, không emoji.
+- Câu đầu: điều quan trọng nhất rút ra từ số liệu, nêu 1–2 con số cụ thể kèm đơn vị (ms, dB, cents, Hz, %; viết số thập phân bằng dấu phẩy).
+- 1–2 câu tiếp: nguyên nhân kỹ thuật có khả năng nhất và cách sửa bằng cảm giác cơ thể cụ thể.
+- Dòng cuối bắt đầu đúng bằng "Bước tiếp:" và nêu MỘT việc cụ thể (tập gì, bao lâu, metronome bao nhiêu).
+- Level của phần Độ mượt gọi là M1 đến M50. Chỉ nhắc level đang xét; riêng khi số liệu có dòng LEVEL KẾ TIẾP thì được gợi ý đúng level đó. Không gợi ý level nào khác, không nhắc level L của phần vibrato.
+- Ngưỡng chấm chưa được kiểm trên tiếng đàn thật: nói "số đo cho thấy", không khẳng định tuyệt đối. Nếu lượt đạt, chỉ ra chỉ số sát ngưỡng nhất để giữ.
+- Micro không biết vĩ đang ở gốc, giữa hay ngọn, không thấy khuỷu tay hay cổ tay: không kết luận về vùng vĩ hay tư thế, chỉ được nhắc học viên tự kiểm.
+- Nếu có LỖI CẢ LƯỢT (không nghe thấy tiếng, tiếng quá ít, sai nốt) thì nói cách để lượt sau đo được hoặc kéo đúng nốt.
+
+Kiến thức nền:
+- Hở tiếng lúc chuyển dây: cánh tay tới mức dây mới quá muộn. Chuẩn bị khuỷu tay trước phách, để lông vĩ chạm cả hai dây một thoáng rồi mới rời dây cũ, giữ tốc độ và sức nặng vĩ.
+- Tiếng tạp lúc chuyển dây: đập vĩ xuống dây mới, hoặc quệt sang dây thừa vì vung tay quá đà. Chuyển động nhỏ hơn, lông vĩ không rời dây, cổ tay và ngón tay làm phần cuối.
+- Sụt hoặc hở tiếng lúc đổi vĩ: cánh tay dừng hẳn rồi mới quay lại. Ngón tay và cổ tay mềm dẫn đổi chiều, giữ sức nặng trên dây qua điểm đổi.
+- Chuyển chậm hoặc sai cao độ lúc vừa tới: ngón tay trái đặt sau khi vĩ đã sang dây. Đặt ngón xuống trước, vĩ sang sau.
+- Vibrato đơ sau điểm đổi: tay trái ngừng rung khi tay phải bận. Rung liên tục qua điểm đổi; sang nốt mới thì ngón đặt xuống là rung ngay, rung xuống dưới nốt.
+- Lệch nhịp: đổi vĩ hoặc chuyển dây sớm hay muộn so với phách; nghe metronome và chuẩn bị trước phách.
+- Không đều tiếng trong nốt: tốc độ hoặc sức nặng vĩ thay đổi giữa chừng; chia vĩ đều theo số phách.
+- Điều kiện qua level do học viên tự chọn (xem dòng TIẾN ĐỘ QUA LEVEL). Qua một level thì mọi level Độ mượt trước đó cũng tính là đã qua.`;
+
+const LEGATO_CODE_VI = { NO_SOUND: 'không nghe thấy tiếng đàn (có tiếng dưới 12% thời gian)',
+  TOO_SHORT: 'tiếng đàn quá ít để chấm (có tiếng dưới 40% thời gian)', WRONG_NOTE: 'quá nửa số nốt lệch hơn 80 cents, có thể kéo sai nốt hoặc sai dây' };
+
+function buildLegatoPrompt(b) {
+  const o = (x) => (x && typeof x === 'object' && !Array.isArray(x) ? x : {});
+  const a = (x, n) => (Array.isArray(x) ? x.slice(0, n) : []);
+  const t = (x, max) => (typeof x === 'string' ? s(x, max) : ''); // chỉ nhận chuỗi
+  const n = (x) => (x != null && x !== '' && Number.isFinite(+x) ? +x : '?');
+  const L = [], lv = o(b.level), g = o(b.legato);
+  L.push('LOẠI: Nhận xét ngay sau một lượt tập phần Độ mượt (legato, đổi vĩ, chuyển dây)');
+  if (Number.isFinite(+lv.id) && +lv.id > 0) {
+    L.push(`LEVEL ĐANG XÉT: M${Math.round(+lv.id)} – ${t(lv.title, 80)}. Loại bài: ${t(lv.kind, 40) || '—'}. Nhịp ${n(lv.bpm)} BPM. Mục tiêu: ${t(lv.goal, 200)}`);
+  }
+  L.push(`LƯỢT TẬP VỪA RỒI: ${g.pass ? 'ĐẠT' : 'CHƯA ĐẠT'}, ${n(g.nOk)}/${n(g.nChecks)} chỉ số đạt.`);
+  if (t(g.code, 30)) L.push('LỖI CẢ LƯỢT: ' + (LEGATO_CODE_VI[g.code] || t(g.code, 30)));
+  const lines = a(g.lines, 14).map((x) => t(x, 260)).filter(Boolean);
+  if (lines.length) L.push('PHIẾU CHẤM (từng chỉ số):\n' + lines.join('\n'));
+  const fails = a(g.fails, 8).map((f) => (f && typeof f === 'object' ? t(f.title, 80) || t(f.code, 40) : t(f, 40))).filter(Boolean);
+  if (fails.length) L.push('CHỈ SỐ TRƯỢT: ' + fails.join('; '));
+  const gt = g.gate;
+  if (gt && typeof gt === 'object') L.push(`TIẾN ĐỘ QUA LEVEL: đạt ${n(gt.passCount)}/${n(gt.neededPasses)} lần, ${n(gt.dayCount)}/${n(gt.neededDays)} ngày${gt.justPassed ? ' — VỪA QUA LEVEL' : ''}`);
+  const rep = a(g.repeated, 5).filter((x) => x && typeof x === 'object' && (t(x.title, 80) || t(x.code, 40))).map((x) => `${t(x.title, 80) || t(x.code, 40)} ×${n(x.count)}`);
+  if (rep.length) L.push('LỖI LẶP LẠI 14 NGÀY (số lần): ' + rep.join(', '));
+  if (g.passed != null || g.total != null) L.push(`Đã qua ${n(g.passed)}/${n(g.total)} level Độ mượt.`);
+  const nx = o(g.next);
+  if (g.pass && Number.isFinite(+nx.id) && +nx.id > 0) L.push(`LEVEL KẾ TIẾP (được gợi ý khi lượt này đạt): M${Math.round(+nx.id)} – ${t(nx.title, 80)}`);
+  const tips = a(lv.tips, 4).map((x) => t(x, 200)).filter(Boolean);
+  if (tips.length) L.push('MẸO CỦA LEVEL: ' + tips.join(' '));
+  const mis = a(lv.mistakes, 4).map((x) => t(x, 200)).filter(Boolean);
+  if (mis.length) L.push('LỖI THƯỜNG GẶP CỦA LEVEL: ' + mis.join(' '));
+  return 'SỐ LIỆU:\n' + L.join('\n') + '\n\nHãy viết nhận xét theo đúng quy tắc.';
+}
+
 const FAIL_VI = { rate_low: 'tốc độ chậm hơn ngưỡng', rate_high: 'tốc độ nhanh hơn ngưỡng', reg_low: 'độ đều thấp',
   width_narrow: 'rung quá hẹp', width_wide: 'rung quá rộng', center_above: 'rung lên trên nốt', center_flat: 'đặt ngón thấp cả nốt' };
 const CENTER_VI = { below: 'dưới nốt (đúng)', above: 'trên nốt (sai hướng)', flat: 'thấp cả nốt' };
@@ -113,6 +170,8 @@ async function handleCoach(request, env) {
   let b;
   try { b = JSON.parse(raw); } catch (e) { return json({ error: 'Dữ liệu không hợp lệ', code: 'AI_ERROR' }, 400); }
   const model = env.CLAUDE_MODEL || DEFAULT_MODEL;
+  const legato = !!(b && b.kind === 'legato');
+  const system = legato ? SYSTEM_PROMPT_LEGATO : SYSTEM_PROMPT;
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 50000);
   let r;
@@ -120,8 +179,8 @@ async function handleCoach(request, env) {
     r = await fetch((env.ANTHROPIC_BASE_URL || DEFAULT_BASE).replace(/\/$/, '') + '/v1/messages', {
       method: 'POST', signal: ctl.signal,
       headers: { 'Content-Type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model, max_tokens: 2000, system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: buildUserPrompt(b) }] }),
+      body: JSON.stringify({ model, max_tokens: 2000, system,
+        messages: [{ role: 'user', content: legato ? buildLegatoPrompt(b) : buildUserPrompt(b) }] }),
     });
   } catch (e) {
     clearTimeout(timer);
@@ -170,7 +229,7 @@ export default {
         const configured = !!env.ANTHROPIC_API_KEY;
         return json({ ok: true, hand: true, auth: env.COACH_PASSCODE ? 'required' : 'none',
           coach: { active: configured ? 'claude' : null, ollama: { ok: false, model: null },
-            claude: { configured, model: env.CLAUDE_MODEL || DEFAULT_MODEL } } });
+            claude: { configured, model: env.CLAUDE_MODEL || DEFAULT_MODEL } }, legato: true });
       }
       if (url.pathname === '/api/coach') return await handleCoach(request, env);
       if (url.pathname.startsWith('/api/')) return json({ error: 'Không có', code: 'AI_ERROR' }, 404);

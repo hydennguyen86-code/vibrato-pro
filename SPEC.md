@@ -256,3 +256,32 @@ Một project Pages (kéo thả từ dashboard) gồm: `index.html`, `vendor/med
 - Bỏ kiểu "thi vượt" (cờ ⚑) và dòng "Bài kiểm tra vòng…" — không còn cần.
 - Màn Kết quả: hiện "Lần đạt x/{neededPasses}"; chỉ hiện "· Ngày y/{neededDays}" khi neededDays > 1. Khi `gate.justPassed` và level > 1: thêm dòng "Các level trước đó cũng được tính là đã qua."
 - Cài đặt: mục "Tốc độ qua level" (3 lựa chọn từ `VE.PASS_MODES`, hiện label + desc), lưu `VE.settings.set({passMode})`.
+
+---
+
+# PHẦN 5 (v5): Đổi cung không làm mất đồng hồ giữ đạt · phần "Độ mượt"
+
+## 13. Đồng hồ giữ đạt khi đổi cung (Fable, engine.js)
+Trước đây: đổi cung để hở tiếng > 0,12 s là `analyzeTrack` cắt đoạn, đoạn mới chưa đủ chu kỳ nên `held` về 0 (người dùng kẹt ở L45: hold 5 s, mỗi cung 4 s).
+Luật mới, áp cho MỌI level `mode:'measure'`, nằm trong `VE._core.makeHold` (thuần, test bằng Node), ngưỡng ở `VE._core.HOLD`:
+
+| Khoá | Mặc định | Nghĩa |
+|---|---|---|
+| `minGapSec` | 0,1 | lặng ngắn hơn thì không coi là khoảng hở |
+| `gapMaxSec` | 0,3 | hở dài hơn → `held` về 0 như cũ |
+| `recoverSec` | 1,5 | sau khoảng hở có bấy nhiêu giây để đạt lại (vibrato chậm: ít nhất `recoverCycles`=4 chu kỳ ở tốc độ thấp nhất của level) |
+| `maxGraces` | 2 | số khoảng hở được tha trong một lượt giữ |
+| `noteChangeSec` | 0,6 | luật cũ cho `TOO_SHORT` khi đổi nốt không hở tiếng (giữ nguyên, không tốn lượt tha) |
+
+- Hở ngắn (0,1–0,3 s) khi `held > 0`: đồng hồ TẠM DỪNG. Trong lúc bắt lại, mọi lý do không đạt (NO_SIGNAL, TOO_SHORT, NO_CYCLES, chỉ số trượt do cửa sổ bị cắt) đều không reset. Hết `recoverSec` (chỉ đếm khi đã có tiếng lại) mà chưa đạt → về 0.
+- Chống lỗ hổng: thời gian hở và thời gian bắt lại KHÔNG cộng vào `held`; khoảng hở thứ `maxGraces + 1` trong cùng một lượt giữ → về 0; `held` về 0 thì số lượt tha tính lại.
+- `metrics` có thêm `holdPaused: bool`. Màn Đo hiện "Đổi cung: đồng hồ tạm dừng, rung lại ngay".
+- Thử trên giao diện không cần đàn: `?demo=1&gap=1#/measure/45` (tín hiệu demo hở 0,2 s mỗi 4 giây; `gap=0.6` để thấy đồng hồ về 0). Chỉ có tác dụng ở chế độ demo.
+- Test: `tests/hold.test.mjs` (hở 0,2 s vẫn đạt; hở 0,6 s về 0; ngắt quãng liên tục không đạt; hở rồi không rung lại thì về 0; L37–50 đều đạt với một chỗ hở 0,2 s).
+
+## 14. Phần "Độ mượt" (legato · đổi vĩ · chuyển dây)
+Hợp đồng đầy đủ ở **`docs/SPEC-LEGATO.md`**; bảng phát việc ở `docs/DISPATCH.md`. Tóm tắt những gì đụng tới phần cũ:
+- `src/engine.js`: xuất thêm `VE._audio` (AudioContext, micro, ngưỡng có tiếng) và `VE._dayKey`; `VE.metronome` có thêm `muted`, `accentEvery`, `_t0`. Hành vi cũ không đổi.
+- `src/ui.js`: có điểm mở rộng `window.VP_EXT` / `window.VP_UI` (đăng ký route, tab, thẻ ở trang Lộ trình). Màn hình Độ mượt nằm ở file riêng, không sửa `ui.js`. Nút "Xoá toàn bộ tiến độ" xoá cả tiến độ Độ mượt.
+- `build.py`: gộp thêm `src/legato-*.js|css`; mỗi file JS một thẻ `<script>`. File của worker chưa có thì bỏ qua.
+- Tiến độ Độ mượt lưu ở khoá localStorage riêng `vibratoPro.legato.v1`, dùng chung `passMode`, không cascade chéo với 100 level vibrato.

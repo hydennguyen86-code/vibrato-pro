@@ -1,0 +1,121 @@
+/* Vibrato Pro · Độ mượt: màn Lượt tập + Phiếu chấm [gói take]. Class mới: tiền tố lgt-. Màu chỉ lấy từ biến CSS. */
+:root {
+  --lgt-vol: rgba(94,176,255,.30); --lgt-vol-line: #6cb8ff; --lgt-bow: rgba(255,255,255,.55); --lgt-cross: #ffb43a;
+  --lgt-segbad: rgba(255,120,90,.18); --lgt-track: rgba(128,128,128,.22); --lgt-focus: rgba(255,190,60,.60); --lgt-focus-bg: rgba(255,190,60,.09);
+}
+:root[data-theme="light"] {
+  --lgt-vol: rgba(28,100,200,.22); --lgt-vol-line: #1c64c8; --lgt-bow: rgba(60,30,10,.55); --lgt-cross: #c06a00;
+  --lgt-segbad: rgba(200,70,40,.14); --lgt-track: rgba(150,90,20,.16); --lgt-focus: rgba(200,120,0,.60); --lgt-focus-bg: rgba(255,190,60,.14);
+}
+
+/* ---------- màn Lượt tập ---------- */
+.lgt-stack { position: relative; gap: 6px; }
+.lgt-ex { padding: 6px 12px 8px; }
+.lgt-now { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.lgt-cur { min-width: 0; }
+.lgt-note { font-size: 68px; line-height: 1; font-weight: 800; letter-spacing: -2px; color: var(--gold-text); }
+.lgt-str { font-size: 16px; font-weight: 700; color: var(--text); margin-top: 2px; white-space: nowrap; }
+.lgt-next { text-align: right; display: grid; justify-items: end; color: var(--muted); padding-bottom: 2px; min-width: 0; }
+.lgt-next small { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+.lgt-next b { font-size: 30px; line-height: 1.05; font-weight: 800; color: var(--text); }
+.lgt-next span { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.lgt-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 6px; }
+.lgt-pn { display: inline-grid; justify-items: center; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--card2);
+  font-size: 15px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.lgt-pn small { font-size: 10px; font-weight: 600; color: var(--muted); }
+.lgt-pn.on { background: linear-gradient(180deg, var(--btn1), var(--btn2)); color: var(--btn-text); border-color: transparent; }
+.lgt-pn.on small { color: var(--btn-text); }
+.lgt-arr { font-style: normal; color: var(--faint); font-weight: 700; }
+.lgt-guide { display: grid; gap: 0; }
+.lgt-gh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14px; }
+.lgt-gh b { font-size: 17px; color: var(--text); white-space: nowrap; }
+.lgt-gh span { color: var(--text); opacity: .82; font-size: 14px; font-weight: 700; text-align: right; }
+.lgt-gh i { font-style: normal; color: var(--muted); font-weight: 600; }
+.lgt-bowcv { display: block; width: 100%; height: 38px; }
+.lgt-graph { position: relative; flex: 1 1 150px !important; min-height: 110px; max-height: 260px; border-radius: 16px; overflow: hidden; background: var(--g-bg); border: 1px solid var(--line); }
+.lgt-graph canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lgt-status { display: grid; gap: 2px; }
+.lgt-sh { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 15px; }
+.lgt-sh .muted { font-weight: 600; font-size: 14px; }
+.lgt-status .bar { height: 10px; margin: 0; }
+.lgt-metro { display: flex; align-items: center; gap: 10px; }
+.lgt-seg { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.lgt-seg button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border-radius: 14px; font-weight: 700; font-size: 15px;
+  background: var(--card2); border: 1px solid var(--line); }
+.lgt-seg button svg { width: 20px; height: 20px; }
+.lgt-seg button[aria-pressed="true"] { background: linear-gradient(180deg, var(--btn1), var(--btn2)); color: var(--btn-text); border-color: transparent; }
+.lgt-seg button:disabled { opacity: .55; cursor: not-allowed; }
+.lgt-dots { display: flex; gap: 8px; flex: none; }
+.lgt-dots i { width: 14px; height: 14px; border-radius: 50%; background: rgba(128,128,128,.4); }
+.lgt-dots i:first-child { width: 16px; height: 16px; }
+.lgt-dots i.on { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.lgt-hint { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.lgt-demo { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+.lgt-demo span { flex: none; display: grid; line-height: 1.1; }
+.lgt-demo span i { font-style: normal; font-weight: 600; font-size: 11px; color: var(--gold-text); }
+.lgt-demo select { flex: 1; min-width: 0; min-height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); color: var(--text); font: inherit; font-size: 15px; padding: 0 8px; }
+.lgt-go { flex: none; }
+#view.fit .lgt-go { min-height: 56px; }
+.lgt-count { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 5;
+  font-size: 150px; font-weight: 900; line-height: 1; color: var(--gold-text); font-variant-numeric: tabular-nums;
+  text-shadow: 0 4px 30px var(--glow), 0 0 2px var(--bg0); }
+.lgt-count[hidden] { display: none; }
+@media (max-height: 700px) {
+  .lgt-note { font-size: 64px; } .lgt-next b { font-size: 26px; } .lgt-hint { font-size: 11px; }
+  .lgt-seg button { min-height: 40px; } #view.fit .lgt-go { min-height: 52px; }
+}
+
+/* ---------- Phiếu chấm ---------- */
+.lgt-empty { display: grid; gap: 10px; justify-items: center; }
+.lgt-empty b { font-size: 17px; color: var(--text); }
+.lgt-hero { display: flex; align-items: center; gap: 14px; padding: 4px 4px 2px; }
+.lgt-hero svg { width: 64px; height: 64px; flex: none; }
+.lgt-hero h2 { font-size: 32px; font-weight: 800; line-height: 1.1; color: var(--gold-text); }
+.lgt-hero.fail h2 { color: var(--text); }
+.lgt-hero p { font-size: 16px; color: var(--muted); font-weight: 600; }
+.lgt-hero p i { font-style: normal; color: var(--gold-text); }
+.lgt-hero .lgt-lvname { font-size: 14px; font-weight: 500; }
+.lgt-res { margin-top: 12px; }
+.lgt-msg span { display: block; font-size: 15px; }
+.lgt-gate { text-align: center; }
+.lgt-grp { padding: 10px 12px; }
+.lgt-grph { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 0 0 4px; }
+.lgt-focus { border: 2px solid var(--lgt-focus); background: var(--lgt-focus-bg); }
+.lgt-focus .lgt-grph { color: var(--gold-text); font-size: 15px; }
+.lgt-badge { font-size: 11px; letter-spacing: .3px; padding: 2px 8px; border-radius: 999px; background: linear-gradient(180deg, var(--btn1), var(--btn2)); color: var(--btn-text); }
+.lgt-ck { padding: 8px 0; }
+.lgt-ck + .lgt-ck { border-top: 1px solid var(--line); }
+.lgt-ckh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.lgt-ckl { font-size: 16px; font-weight: 700; }
+.lgt-ckh .st { margin: 0; flex: none; }
+.lgt-ckv { font-size: 30px; font-weight: 800; line-height: 1.15; margin-top: 2px; }
+.lgt-ck.bad .lgt-ckv { color: var(--bad); }
+.lgt-focus .lgt-ckv { font-size: 34px; }
+.lgt-ckt { font-size: 13px; color: var(--muted); font-weight: 600; }
+.lgt-ckd { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.lgt-tip { display: flex; gap: 10px; align-items: flex-start; margin-top: 8px; padding: 10px; border-radius: 14px; background: var(--bad-bg); border: 1px solid var(--bad); }
+.lgt-tip svg { width: 24px; height: 24px; flex: none; }
+.lgt-tip b { display: block; font-size: 15px; color: var(--text); margin-bottom: 2px; }
+.lgt-tip p { font-size: 15px; color: var(--text); line-height: 1.4; }
+.lgt-full { padding: 10px; }
+.lgt-fullh { display: grid; gap: 0; margin: 0 2px 6px; }
+.lgt-fullh span { font-size: 12px; }
+.lgt-fullcv { position: relative; height: 230px; border-radius: 12px; overflow: hidden; background: var(--g-bg); }
+.lgt-fullcv canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lgt-raw summary { font-size: 16px; font-weight: 700; cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+.lgt-raw[open] summary { margin-bottom: 6px; }
+.lgt-rawnote { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.lgt-kv { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-bottom: 10px; }
+.lgt-kv div { display: flex; justify-content: space-between; gap: 6px; font-size: 13px; border-bottom: 1px solid var(--line); padding: 3px 0; min-width: 0; }
+.lgt-kv div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.lgt-kv span { color: var(--muted); }
+.lgt-kv b { text-align: right; }
+.lgt-tblw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 10px; max-width: 100%; }
+.lgt-tbl { border-collapse: collapse; font-size: 12px; width: 100%; white-space: nowrap; }
+.lgt-tbl th, .lgt-tbl td { padding: 4px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+.lgt-tbl th { color: var(--muted); font-weight: 700; white-space: normal; min-width: 34px; vertical-align: bottom; line-height: 1.15; }
+.lgt-tbl th:nth-child(2), .lgt-tbl td:nth-child(2) { text-align: left; }
+.lgt-tbl tr.bad td { color: var(--bad); font-weight: 700; }
+.lgt-copyta { width: 100%; min-height: 120px; margin-top: 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--card2); color: var(--text); font: 12px/1.35 ui-monospace, Menlo, monospace; }
+.lgt-copyta[hidden] { display: none; }
+.lgt-limit p { font-size: 14px; }
